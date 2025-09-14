@@ -1,3 +1,23 @@
+# Helper to print inspection data
+def print_inspection_data(predictors=None, prediction=None, response=None, prefix=None):
+	if prefix:
+		print(prefix)
+	if predictors is not None:
+		print_1d_data_summary(predictors)
+	if prediction is not None:
+		print_1d_data_summary(prediction)
+	if response is not None:
+		print_1d_data_summary(response)
+
+# Helper to plot regression results
+def plot_regression(x, y, y_pred, xlabel, ylabel, title, color_data, color_line, label_data, label_line):
+	plt.scatter(x, y, color=color_data, label=label_data)
+	plt.plot(x, y_pred, color=color_line, label=label_line)
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+	plt.title(title)
+	plt.legend()
+	plt.show()
 import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
@@ -63,35 +83,21 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data predictors, prediction and response values:")
-    print_1d_data_summary(training_predictors)
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
+	print_inspection_data(training_predictors, prediction, training_response, "The training data predictors, prediction and response values:")
+	plot_regression(training_predictors, training_response, prediction,
+				   xlabel='Diam', ylabel='Height',
+				   title='Linear Regression: Diam vs Height (Training Data)',
+				   color_data='blue', color_line='red',
+				   label_data='Training Data', label_line='Best Fit Line')
 
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Height')
-	plt.title('Linear Regression: Diam vs Height (Training Data)')
-	plt.legend()
-	plt.show()
-	
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data predictors, prediction and response values:")
-		print_1d_data_summary(testing_predictors)
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
-
-        # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		plt.xlabel('Diam')
-		plt.ylabel('Height')
-		plt.title('Linear Regression: Diam vs Height (Testing Data)')
-		plt.legend()
-		plt.show()
+		print_inspection_data(testing_predictors, prediction, testing_response, "The testing data predictors, prediction and response values:")
+		plot_regression(testing_predictors, testing_response, prediction,
+					   xlabel='Diam', ylabel='Height',
+					   title='Linear Regression: Diam vs Height (Testing Data)',
+					   color_data='green', color_line='red',
+					   label_data='Testing Data', label_line='Best Fit Line')
 
 
 def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encode):
@@ -130,33 +136,21 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data prediction and response values:")
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
-
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Volume')
-	plt.title('Linear Regression: Diam vs Volume (Training Data)')
-	plt.legend()
-	plt.show()
+	print_inspection_data(None, prediction, training_response, "The training data prediction and response values:")
+	plot_regression(training_predictors, training_response, prediction,
+				   xlabel='Diam', ylabel='Volume',
+				   title='Linear Regression: Diam vs Volume (Training Data)',
+				   color_data='blue', color_line='red',
+				   label_data='Training Data', label_line='Best Fit Line')
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data prediction and response values:")
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
-
-        # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		plt.xlabel('Diam')
-		plt.ylabel('Volume')
-		plt.title('Linear Regression: Diam vs Volume (Testing Data)')
-		plt.legend()
-		plt.show()
+		print_inspection_data(None, prediction, testing_response, "The testing data prediction and response values:")
+		plot_regression(testing_predictors, testing_response, prediction,
+					   xlabel='Diam', ylabel='Volume',
+					   title='Linear Regression: Diam vs Volume (Testing Data)',
+					   color_data='green', color_line='red',
+					   label_data='Testing Data', label_line='Best Fit Line')
 
 
 def main():
