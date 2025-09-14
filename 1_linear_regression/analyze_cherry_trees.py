@@ -1,3 +1,9 @@
+import numpy as np
+import pandas as pd
+import sklearn.linear_model as lm
+import matplotlib.pyplot as plt
+import sklearn.model_selection as ms
+
 # Helper to print inspection data
 def print_inspection_data(predictors=None, prediction=None, response=None, prefix=None):
 	if prefix:
@@ -18,13 +24,8 @@ def plot_regression(x, y, y_pred, xlabel, ylabel, title, color_data, color_line,
 	plt.title(title)
 	plt.legend()
 	plt.show()
-import numpy as np
-import pandas as pd
-import sklearn.linear_model as lm
-import matplotlib.pyplot as plt
-import sklearn.model_selection as ms
 
-
+	
 # Hey! Some nice pretty functions to gain reuse and avoid redundancy!
 def print_1d_data_summary(data_1d):
 	numpified_data = np.array(data_1d)
@@ -82,6 +83,8 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# # tree diameter, follow it up to the line, then over to the height. I don't have to, but this
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
+
+	
 
 	print_inspection_data(training_predictors, prediction, training_response, "The training data predictors, prediction and response values:")
 	plot_regression(training_predictors, training_response, prediction,
