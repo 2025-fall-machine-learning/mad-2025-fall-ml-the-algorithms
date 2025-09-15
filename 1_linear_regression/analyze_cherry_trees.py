@@ -64,7 +64,7 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
 	print("The training data predictors, prediction and response values:")
-    print_1d_data_summary(training_predictors)
+	print_1d_data_summary(training_predictors)
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
 
@@ -161,7 +161,7 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	cherry_tree_df = pd.read_csv('C:/Users/sgibson3/OneDrive - Madison College/Mac-Learning-F25/mad-2025-fall-ml-the-algorithms/1_linear_regression/CherryTree.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
