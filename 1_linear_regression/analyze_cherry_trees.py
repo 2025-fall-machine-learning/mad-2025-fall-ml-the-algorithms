@@ -161,7 +161,7 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	cherry_tree_df = pd.read_csv('D:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/1_linear_regression/CherryTree.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
