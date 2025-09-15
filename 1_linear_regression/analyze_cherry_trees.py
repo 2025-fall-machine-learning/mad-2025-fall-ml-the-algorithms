@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 
 
 def print_1d_data_summary(data_1d, label=None):
-    
-    #Prints a compact summary (first 5 & last 5) of a 1-D array-like structure.
-    
-    arr = np.array(data_1d).flatten()
+    arr = np.array(data_1d)
+    # Only flatten if it's a 2D array with one column
+    if arr.ndim == 2 and arr.shape[1] == 1:
+        arr = arr.flatten()
     first_five = ", ".join(f"{x:7.3f}" for x in arr[:5])
     last_five = ", ".join(f"{x:7.3f}" for x in arr[-5:])
     print(f"{label + ': ' if label else ''}[{first_five}, ..., {last_five}]")
