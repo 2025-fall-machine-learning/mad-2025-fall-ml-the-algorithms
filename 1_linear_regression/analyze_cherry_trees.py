@@ -64,7 +64,7 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
 	print("The training data predictors, prediction and response values:")
-    print_1d_data_summary(training_predictors)
+	print_1d_data_summary(training_predictors)
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
 
