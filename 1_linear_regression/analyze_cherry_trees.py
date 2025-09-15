@@ -1,177 +1,140 @@
 import numpy as np
 import pandas as pd
-import sklearn.linear_model as lm
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-import sklearn.model_selection as ms
 
 
-# Hey! Some nice pretty functions to gain reuse and avoid redundancy!
-def print_1d_data_summary(data_1d):
-	numpified_data = np.array(data_1d)
-	# Flatten if 2D with one column
-	if numpified_data.ndim == 2 and numpified_data.shape[1] == 1:
-		flattened_numpified_data = numpified_data.flatten()
-	else:
-		flattened_numpified_data = numpified_data
-	# Format first 5 and last 5 values
-	first_five = ", ".join(f"{x:7.3f}" for x in flattened_numpified_data[:5])
-	last_five = ", ".join(f"{x:7.3f}" for x in flattened_numpified_data[-5:])
-	print(f"[{first_five}, ..., {last_five}]")
+def print_1d_data_summary(data_1d, label=None):
+    
+    #Prints a compact summary (first 5 & last 5) of a 1-D array-like structure.
+    
+    arr = np.array(data_1d).flatten()
+    first_five = ", ".join(f"{x:7.3f}" for x in arr[:5])
+    last_five = ", ".join(f"{x:7.3f}" for x in arr[-5:])
+    print(f"{label + ': ' if label else ''}[{first_five}, ..., {last_five}]")
 
 
-def create_linear_regression_model(predictors, response):
-	model = lm.LinearRegression()
-	model.fit(predictors, response)
-
-	return model
-
-
-def perform_linear_regression_prediction(model, predictors):
-	prediction = model.predict(predictors)
-
-	return prediction
-
-
-# Egads! The simple_linear_regression and multiple_linear_regression functions have a lot of
-# common code! We are violating our most sacred principle: Reuse! (or DRY (Don't Repeat Yourself).)
-def simple_linear_regression(cherry_tree_df, create_testing_set):
-	''' Performs simple linear regression on the cherry tree data. That is, one predictor
-	predicting one response. '''
-	predictors = cherry_tree_df[['Diam']].values
-	response = cherry_tree_df['Height'].values
-
-	# If we are not creating a testing set, then we're training on 100% of the data. The name still
-	# applies; it's just that the training set is the entire dataset.
-	training_predictors = predictors
-	training_response = response
-
-	# The caller may want testing data, though for now we're just inspecting it. We're not
-	# performing any testing other than just visual inspection of the results.
-	if create_testing_set:
-		# Split the data into 75% training and 25% testing.
-		training_predictors, testing_predictors, training_response, testing_response \
-			= ms.train_test_split(
-				predictors, response, test_size=0.25, random_state=42)
-
-	# Perform linear regression.
-	model = create_linear_regression_model(training_predictors, training_response)
-	prediction = perform_linear_regression_prediction(model, training_predictors)
-
-	# # y = mx + b. Or in scikit-learn terms: y = model.coef_ * x + model.intercept_. It would take
-	# # me a while, but I could plot this data by hand and calculate the predictions myself. Find a
-	# # tree diameter, follow it up to the line, then over to the height. I don't have to, but this
-	# # is very good to know. I need to **understand** the algorithm.
-	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
-
-	print("The training data predictors, prediction and response values:")
-    print_1d_data_summary(training_predictors)
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
-
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Height')
-	plt.title('Linear Regression: Diam vs Height (Training Data)')
-	plt.legend()
-	plt.show()
-	
-	if create_testing_set:
-		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data predictors, prediction and response values:")
-		print_1d_data_summary(testing_predictors)
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
-
-        # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		plt.xlabel('Diam')
-		plt.ylabel('Height')
-		plt.title('Linear Regression: Diam vs Height (Testing Data)')
-		plt.legend()
-		plt.show()
+def plot_regression(x, y_true, y_pred, x_label, y_label, title, color):
+    
+    #Creates a scatter plot of true values and an optional regression line.
+    
+    plt.scatter(x, y_true, color=color, label=f"{x_label} Data")
+    plt.plot(x, y_pred, color='red', label='Best Fit Line')
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.legend()
+    plt.show()
 
 
-def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encode):
-	''' Performs multiple linear regression on the cherry tree data. That is, multiple predictors
-	predicting one response. '''
+def process_dataset(X, y, model, set_name, labels, color):
+    
+    #Handles prediction, printing summaries, and plotting for one dataset split.
+    # Predict using the model
+    y_pred = model.predict(X)
+    # Print summaries for predictors, predictions, and response
+    x_data = X[:, 0] if X.ndim > 1 else X
+    print_1d_data_summary(x_data, f"{labels['predictors']} predictors ({set_name})")
+    print_1d_data_summary(y_pred, f"Prediction ({set_name})")
+    print_1d_data_summary(y, f"{labels['response']} response ({set_name})")
+    # Plot regression
+    plot_regression(
+        x_data,
+        y,
+        y_pred,
+        labels['predictors'],
+        labels['response'],
+        f"Linear Regression: {labels['predictors']} vs {labels['response']} ({set_name})",
+        color
+    )
 
-	if not one_hot_encode:
-		predictors = cherry_tree_df[['Diam', 'Height']].values
-	else:
-		# One-hot encode the Season column (values: Summer, Fall, Winter, Spring).
-		season_dummies = pd.get_dummies(cherry_tree_df['Season'], prefix='Season')
-		predictors = pd.concat([cherry_tree_df[['Diam', 'Height']], season_dummies], axis=1).values
 
-	response = cherry_tree_df['Volume'].values
+def regression_workflow(
+    df,
+    predictors_cols,
+    response_col,
+    create_testing_set=False,
+    one_hot_encode=False,
+    categorical_col=None,
+    labels=None,
+    model_type='linear'  # Could be: 'linear' or 'multiple' 
 
-	# If we are not creating a testing set, then we're training on 100% of the data. The name still
-	# applies; it's just that the training set is the entire dataset.
-	training_predictors = predictors
-	training_response = response
+):
+    
+    #Main workflow to:
+    # select predictors/response
+    # (optionally) one-hot encode categorical variables
+    # split into train/test sets (if requested)
+    # fit a linear regression model
+    # process each dataset (train/test)
+     
+    # 1. Prepare predictors (X)
+    X = df[predictors_cols].values
+    # Add dummy variables if specified
+    if one_hot_encode and categorical_col:
+        dummies = pd.get_dummies(df[categorical_col], prefix=categorical_col)
+        X = np.hstack([X, dummies.values])
 
-	# The caller may want testing data, though for now we're just inspecting it. We're not
-	# performing any testing other than just visual inspection of the results.
-	if create_testing_set:
-		# Split the data into 75% training and 25% testing.
-		training_predictors, testing_predictors, training_response, testing_response \
-			= ms.train_test_split(
-				predictors, response, test_size=0.25, random_state=42)
+    # 2. Prepare response (y)
+    y = df[response_col].values
 
-	# Perform linear regression.
-	model = create_linear_regression_model(training_predictors, training_response)
-	prediction = perform_linear_regression_prediction(model, training_predictors)
+    # 3. Split or use all data
+    if create_testing_set:
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=42)
+        datasets = [
+            ('Training', X_train, y_train, 'purple'),
+            ('Testing', X_test, y_test, 'orange')
+        ]
+    else:
+        datasets = [('All Data', X, y, 'violet')]
 
-	# # y = mx + b. Or in scikit-learn terms: y = model.coef_ * x + model.intercept_. It would take
-	# # me a while, but I could plot this data by hand and calculate the predictions myself. Find a
-	# # tree diameter, follow it up to the line, then over to the height. I don't have to, but this
-	# # is very good to know. I need to **understand** the algorithm.
-	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
+    # 4. Fit model on training data (or all data)
+    if model_type == 'multiple' and X.shape[1] > 1:
+        print("Using Multiple Linear Regression (multi-feature)")
+        model = LinearRegression().fit(datasets[0][1], datasets[0][2])
+    else:
+        print("Using Simple Linear Regression (single feature)")
+        model = LinearRegression().fit(datasets[0][1], datasets[0][2])
 
-	print("The training data prediction and response values:")
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
-
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Volume')
-	plt.title('Linear Regression: Diam vs Volume (Training Data)')
-	plt.legend()
-	plt.show()
-
-	if create_testing_set:
-		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data prediction and response values:")
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
-
-        # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		plt.xlabel('Diam')
-		plt.ylabel('Volume')
-		plt.title('Linear Regression: Diam vs Volume (Testing Data)')
-		plt.legend()
-		plt.show()
+    # 5. Process each dataset (print + plot)
+    for set_name, X_set, y_set, color in datasets:
+        process_dataset(X_set, y_set, model, set_name, labels, color)
 
 
 def main():
-	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+    
+    # Main entry point:
+    # Reads CSV
+    # Runs regression_workflow with desired settings
+    
+    df = pd.read_csv('CherryTree.csv')
 
-	# Sometimes it's nice to see the raw data.
-	# print(cherry_tree_df.head())
+    # Example linear regression: single predictor, no test split
+    #regression_workflow(
+    #    df,
+    #    predictors_cols=['Diam'],
+    #    response_col='Height',
+    #    create_testing_set=False,
+    #    labels={'predictors': 'Diam', 'response': 'Height'},
+    #    model_type='linear'
+    #)
 
-	simple_linear_regression(cherry_tree_df, False)
-	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
-	# multiple_linear_regression(cherry_tree_df, False, True)
-	# multiple_linear_regression(cherry_tree_df, True, False)
+    # To try other runs, just call regression_workflow again with new parameters:
+    # regression_workflow(df, ['Diam'], 'Height', create_testing_set=True, labels={'predictors':'Diam','response':'Height'})
+    # regression_workflow(df, ['Diam','Height'], 'Volume', create_testing_set=False, labels={'predictors':'Diam','response':'Volume'})
+
+    # Example: Multiple linear regression (Diam and Height as predictors for Volume)
+    regression_workflow(
+        df,
+        predictors_cols=['Diam', 'Height'],
+        response_col='Volume',
+        create_testing_set=True,
+        labels={'predictors': 'Diam & Height', 'response': 'Volume'},
+        model_type='multiple'
+    )
 
 
 if __name__ == "__main__":
-	main()
+    main()
