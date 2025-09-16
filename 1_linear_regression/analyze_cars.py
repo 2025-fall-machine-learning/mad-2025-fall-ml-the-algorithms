@@ -35,10 +35,10 @@ def perform_linear_regression_prediction(model, predictors):
 # Egads! The simple_linear_regression and multiple_linear_regression functions have a lot of
 # common code! We are violating our most sacred principle: Reuse! (or DRY (Don't Repeat Yourself).)
 def simple_linear_regression(cars_df, create_testing_set):
-	''' Performs simple linear regression on the cherry tree data. That is, one predictor
+	''' Performs simple linear regression on the cars data. That is, one predictor
 	predicting one response. '''
-	predictors = cars_df[['Diam']].values
-	response = cars_df['Height'].values
+	predictors = cars_df[['enginesize']].values
+	response = cars_df['price'].values
 
 	# If we are not creating a testing set, then we're training on 100% of the data. The name still
 	# applies; it's just that the training set is the entire dataset.
@@ -71,9 +71,9 @@ def simple_linear_regression(cars_df, create_testing_set):
 	# Plot the data and the best fit line.
 	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
 	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Height')
-	plt.title('Linear Regression: Diam vs Height (Training Data)')
+	plt.xlabel('Engine Size')
+	plt.ylabel('Price')
+	plt.title('Linear Regression: Engine Size vs Price (Training Data)')
 	plt.legend()
 	plt.show()
 	
@@ -95,17 +95,17 @@ def simple_linear_regression(cars_df, create_testing_set):
 
 
 def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
-	''' Performs multiple linear regression on the cherry tree data. That is, multiple predictors
+	''' Performs multiple linear regression on the cars data. That is, multiple predictors
 	predicting one response. '''
 
 	if not one_hot_encode:
-		predictors = cars_df[['Diam', 'Height']].values
+		predictors = cars_df[['enginesize', 'price']].values
 	else:
-		# One-hot encode the Season column (values: Summer, Fall, Winter, Spring).
-		season_dummies = pd.get_dummies(cars_df['Season'], prefix='Season')
-		predictors = pd.concat([cars_df[['Diam', 'Height']], season_dummies], axis=1).values
+		# One-hot encode the Season column (values: Convertable, Hatchback, Sedan, Wagon).
+		carbody_dummies = pd.get_dummies(cars_df['carbody'], prefix='carbody')
+		predictors = pd.concat([cars_df[['enginesize', 'price']], carbody_dummies], axis=1).values
 
-	response = cars_df['Volume'].values
+	response = cars_df['CarName'].values
 
 	# If we are not creating a testing set, then we're training on 100% of the data. The name still
 	# applies; it's just that the training set is the entire dataset.
@@ -160,8 +160,8 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 
 
 def main():
-	# Cherry tree diameters are easy. Heights are hard.
-	cars_df = pd.read_csv('cars.csv')
+
+	cars_df = pd.read_csv('E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/mad-2025-fall-ml-the-algorithms/1_linear_regression/cars.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
