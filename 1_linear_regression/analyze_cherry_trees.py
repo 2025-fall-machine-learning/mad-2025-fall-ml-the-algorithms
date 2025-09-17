@@ -135,8 +135,9 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	print_1d_data_summary(training_response)
 
 	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
+	# print(training_predictors[:,0])
+	plt.scatter(training_predictors[:,0], training_response, color='blue', label='Training Data')
+	plt.plot(training_predictors[:,0], prediction, color='red', label='Best Fit Line')
 	plt.xlabel('Diam')
 	plt.ylabel('Volume')
 	plt.title('Linear Regression: Diam vs Volume (Training Data)')
@@ -150,8 +151,8 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 		print_1d_data_summary(testing_response)
 
         # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
+		plt.scatter(testing_predictors[:,0], testing_response, color='green', label='Testing Data')
+		plt.plot(testing_predictors[:,0], prediction, color='red', label='Best Fit Line')
 		plt.xlabel('Diam')
 		plt.ylabel('Volume')
 		plt.title('Linear Regression: Diam vs Volume (Testing Data)')
