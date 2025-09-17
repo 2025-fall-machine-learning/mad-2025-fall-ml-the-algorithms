@@ -167,9 +167,9 @@ def main():
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
 
-	simple_linear_regression(cherry_tree_df, False)
+	# simple_linear_regression(cherry_tree_df, False)
 	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
+	multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
 	# multiple_linear_regression(cherry_tree_df, True, False)
 
