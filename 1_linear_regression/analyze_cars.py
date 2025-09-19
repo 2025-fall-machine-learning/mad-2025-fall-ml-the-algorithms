@@ -67,15 +67,8 @@ def simple_linear_regression(cars_df, create_testing_set):
 	print_1d_data_summary(training_predictors)
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
+	graph(training_predictors, training_response, "blue", prediction, "Training Data")
 
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Engine Size')
-	plt.ylabel('Price')
-	plt.title('Linear Regression: Engine Size vs Price (Training Data)')
-	plt.legend()
-	plt.show()
 	
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
@@ -83,15 +76,17 @@ def simple_linear_regression(cars_df, create_testing_set):
 		print_1d_data_summary(testing_predictors)
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
+		graph(testing_predictors, testing_response, "green", prediction, "Testing Data")
 
-        # Plot the data and the best fit line.
-		# plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		# plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		# plt.xlabel('Diam')
-		# plt.ylabel('Height')
-		# plt.title('Linear Regression: Diam vs Height (Testing Data)')
-		# plt.legend()
-		# plt.show()
+def graph(pred, resp, whatcolor, prediction, whatlabel): 
+	# Plot the data and the best fit line.
+	plt.scatter(pred, resp, color=whatcolor, label=whatlabel)
+	plt.plot(pred, prediction, color='red', label='Best Fit Line')
+	plt.xlabel('Engine Size')
+	plt.ylabel('Price')
+	plt.title('Linear Regression: Engine Size vs Price (Training Data)')
+	plt.legend()
+	plt.show()
 
 
 def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
@@ -99,13 +94,13 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 	predicting one response. '''
 
 	if not one_hot_encode:
-		predictors = cars_df[['enginesize', 'price']].values
+		predictors = cars_df[['enginesize', 'horsepower']].values
 	else:
-		# One-hot encode the Season column (values: Convertable, Hatchback, Sedan, Wagon).
-		carbody_dummies = pd.get_dummies(cars_df['carbody'], prefix='carbody')
-		predictors = pd.concat([cars_df[['enginesize', 'price']], carbody_dummies], axis=1).values
+		# One-hot encode the carbody column (values: convertable, hardtop, hatchback, sedan, wagon).
+		drivewheel_dummies = pd.get_dummies(cars_df['carbody'], prefix='carbody')
+		predictors = pd.concat([cars_df[['enginesize', 'horsepower']], drivewheel_dummies], axis=1).values
 
-	response = cars_df['CarName'].values
+	response = cars_df['price'].values
 
 	# If we are not creating a testing set, then we're training on 100% of the data. The name still
 	# applies; it's just that the training set is the entire dataset.
@@ -135,13 +130,7 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 	print_1d_data_summary(training_response)
 
 	# Plot the data and the best fit line.
-	# plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	# plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	# plt.xlabel('Diam')
-	# plt.ylabel('Volume')
-	# plt.title('Linear Regression: Diam vs Volume (Training Data)')
-	# plt.legend()
-	# plt.show()
+	graph(training_predictors[:,0], training_response, "blue", prediction, "Training Data")
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
@@ -149,28 +138,18 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
 
-        # Plot the data and the best fit line.
-		# plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		# plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		# plt.xlabel('Diam')
-		# plt.ylabel('Volume')
-		# plt.title('Linear Regression: Diam vs Volume (Testing Data)')
-		# plt.legend()
-		# plt.show()
-
-
 def main():
 
 	cars_df = pd.read_csv('E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/mad-2025-fall-ml-the-algorithms/1_linear_regression/cars.csv')
 
 	# Sometimes it's nice to see the raw data.
-	# print(cherry_tree_df.head())
+	# print(cars_df.head())
 
-	simple_linear_regression(cars_df, False)
-	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
-	# multiple_linear_regression(cherry_tree_df, False, True)
-	# multiple_linear_regression(cherry_tree_df, True, False)
+	# simple_linear_regression(cars_df, False)
+	# simple_linear_regression(cars_df, True)
+	# multiple_linear_regression(cars_df, False, False)
+	multiple_linear_regression(cars_df, False, True)
+	# multiple_linear_regression(cars_df, True, False)
 
 
 if __name__ == "__main__":

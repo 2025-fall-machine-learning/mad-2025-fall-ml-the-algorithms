@@ -52,6 +52,7 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 		training_predictors, testing_predictors, training_response, testing_response \
 			= ms.train_test_split(
 				predictors, response, test_size=0.25, random_state=42)
+		
 
 	# Perform linear regression.
 	model = create_linear_regression_model(training_predictors, training_response)
@@ -67,31 +68,25 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	print_1d_data_summary(training_predictors)
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
+	graph(training_predictors, training_response, "blue", prediction, "Training Data")
 
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Height')
-	plt.title('Linear Regression: Diam vs Height (Training Data)')
-	plt.legend()
-	plt.show()
-	
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
 		print("The testing data predictors, prediction and response values:")
 		print_1d_data_summary(testing_predictors)
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
+		graph(testing_predictors, testing_response, "green", prediction, "Testing Data")
 
-        # # Plot the data and the best fit line.
-		# plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		# plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		# plt.xlabel('Diam')
-		# plt.ylabel('Height')
-		# plt.title('Linear Regression: Diam vs Height (Testing Data)')
-		# plt.legend()
-		# plt.show()
+def graph(pred, resp, whatcolor, prediction, whatlabel): 
+	# Plot the data and the best fit line.
+	plt.scatter(pred, resp, color=whatcolor, label=whatlabel)
+	plt.plot(pred, prediction, color='red', label='Best Fit Line')
+	plt.xlabel('Diam')
+	plt.ylabel('Height')
+	plt.title('Linear Regression: Diam vs Height (Testing Data)')
+	plt.legend()
+	plt.show()
 
 
 def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encode):
@@ -130,38 +125,23 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data prediction and response values:")
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
+	# print("The training data prediction and response values:")
+	# print_1d_data_summary(prediction)
+	# print_1d_data_summary(training_response)
 
 	# Plot the data and the best fit line.
-	# plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	# plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	# plt.xlabel('Diam')
-	# plt.ylabel('Volume')
-	# plt.title('Linear Regression: Diam vs Volume (Training Data)')
-	# plt.legend()
-	# plt.show()
-
+	graph(training_predictors[:,0], training_response, "blue", prediction, "Training Data")
+ 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
 		print("The testing data prediction and response values:")
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
 
-        # Plot the data and the best fit line.
-		# plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		# plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		# plt.xlabel('Diam')
-		# plt.ylabel('Volume')
-		# plt.title('Linear Regression: Diam vs Volume (Testing Data)')
-		# plt.legend()
-		# plt.show()
-
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	cherry_tree_df = pd.read_csv('E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/1_linear_regression/CherryTree.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
