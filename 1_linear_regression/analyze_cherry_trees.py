@@ -45,7 +45,7 @@ def process_dataset(X, y, model, set_name, labels, color):
         y_pred,
         labels['predictors'],
         labels['response'],
-        f"Linear Regression: {labels['predictors']} vs {labels['response']} ({set_name})",
+        f"Regression Methods: {labels['predictors']} vs {labels['response']} ({set_name})",
         color
     )
 
@@ -112,28 +112,28 @@ def main():
     df = pd.read_csv('CherryTree.csv')
 
     # Example linear regression: single predictor, no test split
-    #regression_workflow(
-    #    df,
-    #    predictors_cols=['Diam'],
-    #    response_col='Height',
-    #    create_testing_set=False,
-    #    labels={'predictors': 'Diam', 'response': 'Height'},
-    #    model_type='linear'
-    #)
+    regression_workflow(
+       df,
+       predictors_cols=['Diam'],
+       response_col='Height',
+       create_testing_set=False,
+       labels={'predictors': 'Diam', 'response': 'Height'},
+       model_type='linear'
+    )
 
     # To try other runs, just call regression_workflow again with new parameters:
     # regression_workflow(df, ['Diam'], 'Height', create_testing_set=True, labels={'predictors':'Diam','response':'Height'})
     # regression_workflow(df, ['Diam','Height'], 'Volume', create_testing_set=False, labels={'predictors':'Diam','response':'Volume'})
 
     # Example: Multiple linear regression (Diam and Height as predictors for Volume)
-    regression_workflow(
-        df,
-        predictors_cols=['Diam', 'Height'],
-        response_col='Volume',
-        create_testing_set=True,
-        labels={'predictors': 'Diam & Height', 'response': 'Volume'},
-        model_type='multiple'
-    )
+    # regression_workflow(
+    #     df,
+    #     predictors_cols=['Diam', 'Height'],
+    #     response_col='Volume',
+    #     create_testing_set=True,
+    #     labels={'predictors': 'Diam & Height', 'response': 'Volume'},
+    #     model_type='multiple'
+    # )
 
 
 if __name__ == "__main__":
