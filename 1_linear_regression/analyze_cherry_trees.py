@@ -19,6 +19,19 @@ def print_1d_data_summary(data_1d):
 	print(f"[{first_five}, ..., {last_five}]")
 
 
+# Add concise helper to avoid repeating the triple-print pattern
+def print_batch_summary(title, predictors=None, prediction=None, response=None):
+	"""Print a title and summarize up to three arrays (predictors, prediction, response).
+	Any of the three may be None; only present items are printed."""
+	print(title)
+	if predictors is not None:
+		print_1d_data_summary(predictors)
+	if prediction is not None:
+		print_1d_data_summary(prediction)
+	if response is not None:
+		print_1d_data_summary(response)
+
+
 def create_linear_regression_model(predictors, response):
 	model = lm.LinearRegression()
 	model.fit(predictors, response)
@@ -63,10 +76,11 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data predictors, prediction and response values:")
-    print_1d_data_summary(training_predictors)
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
+	# Replace the training triple-print in simple_linear_regression
+	print_batch_summary("The training data predictors, prediction and response values:",
+				predictors=training_predictors,
+				prediction=prediction,
+				response=training_response)
 
 	# Plot the data and the best fit line.
 	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
@@ -79,10 +93,11 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data predictors, prediction and response values:")
-		print_1d_data_summary(testing_predictors)
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
+		# Replace the testing triple-print in simple_linear_regression
+		print_batch_summary("The testing data predictors, prediction and response values:",
+				predictors=testing_predictors,
+				prediction=prediction,
+				response=testing_response)
 
         # Plot the data and the best fit line.
 		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
@@ -130,13 +145,16 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data prediction and response values:")
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
+	# Replace the training triple-print in multiple_linear_regression
+	print_batch_summary("The training data prediction and response values:",
+				prediction=prediction,
+				response=training_response)
 
 	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
+	print(training_predictors)
+	print(training_response)
+	plt.scatter(training_predictors[:, 0], training_response, color='blue', label='Training Data')
+	plt.plot(training_predictors[:, 0], prediction, color='red', label='Best Fit Line')
 	plt.xlabel('Diam')
 	plt.ylabel('Volume')
 	plt.title('Linear Regression: Diam vs Volume (Training Data)')
@@ -145,13 +163,14 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data prediction and response values:")
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
+		# Replace the testing triple-print in multiple_linear_regression
+		print_batch_summary("The testing data prediction and response values:",
+				prediction=prediction,
+				response=testing_response)
 
         # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
+		plt.scatter(testing_predictors[:, 0], testing_response, color='green', label='Testing Data')
+		plt.plot(testing_predictors[:, 0], prediction, color='red', label='Best Fit Line')
 		plt.xlabel('Diam')
 		plt.ylabel('Volume')
 		plt.title('Linear Regression: Diam vs Volume (Testing Data)')
@@ -161,14 +180,14 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	cherry_tree_df = pd.read_csv('C:/Users/student/OneDrive - Madison College/Mac-Learning-F25/mad-2025-fall-ml-the-algorithms/1_linear_regression/CherryTree.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
 
-	simple_linear_regression(cherry_tree_df, False)
+	# simple_linear_regression(cherry_tree_df, False)
 	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
+	multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
 	# multiple_linear_regression(cherry_tree_df, True, False)
 
