@@ -46,9 +46,9 @@ def perform_linear_regression_prediction(model, predictors):
 
 
 def simple_linear_regression(cars_df, create_testing_set):
-	''' One predictor (horsepower) predicting one response (price). '''
+	''' One predictor (enginesize) predicting one response (price). '''
 	# Choose a single predictor column and response
-	predictors = cars_df[['horsepower']].values
+	predictors = cars_df[['enginesize']].values
 	response = cars_df['price'].values
 
 	training_predictors = predictors
@@ -74,9 +74,9 @@ def simple_linear_regression(cars_df, create_testing_set):
 	pred_train_sorted = prediction.flatten()[order]
 	plt.scatter(x_train, training_response, color='blue', label='Training Data')
 	plt.plot(x_train_sorted, pred_train_sorted, color='red', label='Best Fit Line')
-	plt.xlabel('Horsepower')
+	plt.xlabel('Engine Size')
 	plt.ylabel('Price')
-	plt.title('Linear Regression: Horsepower vs Price (Training Data)')
+	plt.title('Linear Regression: Engine Size vs Price (Training Data)')
 	plt.legend()
 	plt.show()
 
@@ -87,18 +87,18 @@ def simple_linear_regression(cars_df, create_testing_set):
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
 
-		# Plot testing: sort x before plotting
-		x_test = testing_predictors.flatten()
-		order = np.argsort(x_test)
-		x_test_sorted = x_test[order]
-		pred_test_sorted = prediction.flatten()[order]
-		plt.scatter(x_test, testing_response, color='green', label='Testing Data')
-		plt.plot(x_test_sorted, pred_test_sorted, color='red', label='Best Fit Line')
-		plt.xlabel('Horsepower')
-		plt.ylabel('Price')
-		plt.title('Linear Regression: Horsepower vs Price (Testing Data)')
-		plt.legend()
-		plt.show()
+	# Plot testing: sort x before plotting
+	x_test = testing_predictors.flatten()
+	order = np.argsort(x_test)
+	x_test_sorted = x_test[order]
+	pred_test_sorted = prediction.flatten()[order]
+	plt.scatter(x_test, testing_response, color='green', label='Testing Data')
+	plt.plot(x_test_sorted, pred_test_sorted, color='red', label='Best Fit Line')
+	plt.xlabel('Engine Size')
+	plt.ylabel('Price')
+	plt.title('Linear Regression: Engine Size vs Price (Testing Data)')
+	plt.legend()
+	plt.show()
 
 
 def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
