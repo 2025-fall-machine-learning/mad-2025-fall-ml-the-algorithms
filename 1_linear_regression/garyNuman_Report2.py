@@ -126,5 +126,16 @@ rmse_multi = mean_squared_error(y_test_m, y_pred_m) ** 0.5
 
 # Print results
 print("\n=== Multiple Linear Regression (Numeric + One-Hot Encoded Categorical) ===")
-print(f"Coeffiecent of Determination:   {r2_multi:.3f}")
+print(f"Coeffiecent of Determination: {r2_multi:.3f}")
 print(f"Root Mean Squared Error: ${rmse_multi:,.2f}")
+
+# Plot predicted vs actual
+sns.scatterplot(x=y_test_m, y=y_pred_m, alpha=0.7)
+plt.plot([y_test_m.min(), y_test_m.max()],
+         [y_test_m.min(), y_test_m.max()],
+         color='red', linestyle='--')  # 45° line (perfect predictions)
+plt.xlabel("Actual Price")
+plt.ylabel("Predicted Price")
+plt.title("Multiple Linear Regression: Actual vs Predicted")
+plt.tight_layout()
+plt.show()
