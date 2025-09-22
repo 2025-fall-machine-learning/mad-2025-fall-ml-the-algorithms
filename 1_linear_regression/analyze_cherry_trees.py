@@ -1,3 +1,5 @@
+import os
+import sys
 import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
@@ -32,6 +34,30 @@ def perform_linear_regression_prediction(model, predictors):
 	return prediction
 
 
+# Helper to print the same three 1D summaries (predictors, prediction, response)
+def summarise_and_print(label, predictors, prediction, response):
+	print(label)
+	print_1d_data_summary(predictors)
+	print_1d_data_summary(prediction)
+	print_1d_data_summary(response)
+
+
+# Helper to plot scatter and a sorted connecting line for predicted values
+def plot_sorted_prediction(x_values, y_pred, y_true, xlabel, ylabel, title, color_scatter='blue'):
+	plt.scatter(x_values, y_true, color=color_scatter, label='Training Data')
+	x = np.ravel(x_values)
+	y_sorted = np.ravel(y_pred)
+	order = np.argsort(x)
+	x_sorted = x[order]
+	y_sorted = y_sorted[order]
+	plt.plot(x_sorted, y_sorted, color='red', label='Best Fit Line')
+	plt.xlabel(xlabel)
+	plt.ylabel(ylabel)
+	plt.title(title)
+	plt.legend()
+	plt.show()
+
+
 # Egads! The simple_linear_regression and multiple_linear_regression functions have a lot of
 # common code! We are violating our most sacred principle: Reuse! (or DRY (Don't Repeat Yourself).)
 def simple_linear_regression(cherry_tree_df, create_testing_set):
@@ -63,35 +89,18 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data predictors, prediction and response values:")
-	print_1d_data_summary(training_predictors)
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
-
-	# Plot the data and the best fit line.
-	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
-	plt.xlabel('Diam')
-	plt.ylabel('Height')
-	plt.title('Linear Regression: Diam vs Height (Training Data)')
-	plt.legend()
-	plt.show()
+	summarise_and_print("The training data predictors, prediction and response values:",
+						training_predictors, prediction, training_response)
+	plot_sorted_prediction(training_predictors, prediction, training_response,
+						   xlabel='Diam', ylabel='Height', title='Linear Regression: Diam vs Height (Training Data)')
 	
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data predictors, prediction and response values:")
-		print_1d_data_summary(testing_predictors)
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
-
-        # Plot the data and the best fit line.
-		plt.scatter(testing_predictors, testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors, prediction, color='red', label='Best Fit Line')
-		plt.xlabel('Diam')
-		plt.ylabel('Height')
-		plt.title('Linear Regression: Diam vs Height (Testing Data)')
-		plt.legend()
-		plt.show()
+		summarise_and_print("The testing data predictors, prediction and response values:",
+			            testing_predictors, prediction, testing_response)
+		plot_sorted_prediction(testing_predictors, prediction, testing_response,
+			       xlabel='Diam', ylabel='Height', title='Linear Regression: Diam vs Height (Testing Data)',
+			       color_scatter='green')
 
 
 def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encode):
@@ -130,14 +139,26 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	print("The training data prediction and response values:")
-	print_1d_data_summary(prediction)
-	print_1d_data_summary(training_response)
+	summarise_and_print("The training data prediction and response values:",
+				training_predictors[:,0].reshape(-1,1), prediction, training_response)
 
-	# Plot the data and the best fit line.
-	# print(training_predictors[:,0])
+	# Scatter the actual training points
 	plt.scatter(training_predictors[:,0], training_response, color='blue', label='Training Data')
-	plt.plot(training_predictors[:,0], prediction, color='red', label='Best Fit Line')
+
+	# Create a Diam grid and predict while holding other predictors at their mean.
+	# This produces the model's expected Volume as a function of Diam (a straight line for linear regression).
+	min_diam = training_predictors[:,0].min()
+	max_diam = training_predictors[:,0].max()
+	x_grid = np.linspace(min_diam, max_diam, 200).reshape(-1, 1)
+
+	# Build grid predictors by taking the mean of training predictors as a base and replacing Diam with the grid
+	base = training_predictors.mean(axis=0)
+	grid_predictors = np.tile(base, (x_grid.shape[0], 1))
+	grid_predictors[:, 0] = x_grid.flatten()
+
+	y_grid = model.predict(grid_predictors)
+
+	plt.plot(x_grid.flatten(), y_grid, color='red', label='Best Fit Line')
 	plt.xlabel('Diam')
 	plt.ylabel('Volume')
 	plt.title('Linear Regression: Diam vs Volume (Training Data)')
@@ -146,13 +167,19 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
-		print("The testing data prediction and response values:")
-		print_1d_data_summary(prediction)
-		print_1d_data_summary(testing_response)
+		summarise_and_print("The testing data prediction and response values:",
+				testing_predictors[:,0].reshape(-1,1), prediction, testing_response)
 
-        # Plot the data and the best fit line.
+		# Plot testing scatter and the same grid-based regression line (hold other predictors at their mean)
 		plt.scatter(testing_predictors[:,0], testing_response, color='green', label='Testing Data')
-		plt.plot(testing_predictors[:,0], prediction, color='red', label='Best Fit Line')
+		# reuse base computed from training_predictors
+		min_diam = training_predictors[:,0].min()
+		max_diam = training_predictors[:,0].max()
+		x_grid = np.linspace(min_diam, max_diam, 200).reshape(-1, 1)
+		grid_predictors = np.tile(base, (x_grid.shape[0], 1))
+		grid_predictors[:, 0] = x_grid.flatten()
+		y_grid = model.predict(grid_predictors)
+		plt.plot(x_grid.flatten(), y_grid, color='red', label='Best Fit Line')
 		plt.xlabel('Diam')
 		plt.ylabel('Volume')
 		plt.title('Linear Regression: Diam vs Volume (Testing Data)')
@@ -162,7 +189,10 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	# Load CSV relative to the script location so running from any CWD works
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	csv_path = os.path.join(script_dir, 'CherryTree.csv')
+	cherry_tree_df = pd.read_csv(csv_path)
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
