@@ -12,9 +12,9 @@ def main():
 	# print(cars_df.head())
 
 	# Options similar to analyze_cherry_trees.py
-	# simple_linear_regression(cars_df, False)
+	simple_linear_regression(cars_df, False)
 	# simple_linear_regression(cars_df, True)
-	multiple_linear_regression(cars_df, False, False)
+	# multiple_linear_regression(cars_df, False, False)
 	# multiple_linear_regression(cars_df, False, True)
 	# multiple_linear_regression(cars_df, True, False)
 
@@ -87,18 +87,18 @@ def simple_linear_regression(cars_df, create_testing_set):
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
 
-	# Plot testing: sort x before plotting
-	x_test = testing_predictors.flatten()
-	order = np.argsort(x_test)
-	x_test_sorted = x_test[order]
-	pred_test_sorted = prediction.flatten()[order]
-	plt.scatter(x_test, testing_response, color='green', label='Testing Data')
-	plt.plot(x_test_sorted, pred_test_sorted, color='red', label='Best Fit Line')
-	plt.xlabel('Engine Size')
-	plt.ylabel('Price')
-	plt.title('Linear Regression: Engine Size vs Price (Testing Data)')
-	plt.legend()
-	plt.show()
+		# Plot testing: sort x before plotting
+		x_test = testing_predictors.flatten()
+		order = np.argsort(x_test)
+		x_test_sorted = x_test[order]
+		pred_test_sorted = prediction.flatten()[order]
+		plt.scatter(x_test, testing_response, color='green', label='Testing Data')
+		plt.plot(x_test_sorted, pred_test_sorted, color='red', label='Best Fit Line')
+		plt.xlabel('Engine Size')
+		plt.ylabel('Price')
+		plt.title('Linear Regression: Engine Size vs Price (Testing Data)')
+		plt.legend()
+		plt.show()
 
 
 def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
