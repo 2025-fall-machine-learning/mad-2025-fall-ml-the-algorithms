@@ -1,24 +1,3 @@
-# Simple cars analysis script
-#
-# This script loads a local `cars.csv` dataset, prints basic diagnostics, computes
-# correlations with the `price` column, and runs a simple linear regression
-# example (enginesize -> price). It saves plots to PNG files in the same
-# directory as the script.
-#
-# How to switch plots between training-only and both (training + test):
-# - Open `analyze_cars.py` and find the call in `main()` to
-#   `simple_linear_regression_plot(..., plot='train')`.
-# - Change the `plot` argument to one of: 'train', 'test', or 'both'.
-#   - 'train'  -> plot only training points + fit
-#   - 'test'   -> plot only testing points + fit
-#   - 'both'   -> plot both train and test on the same figure
-#
-# Example (run training-only):
-#     py 1_linear_regression\analyze_cars.py
-#
-# The file is intentionally small and self-contained so you can extend it with
-# multiple predictors, cross-validation, or saving metrics later.
-
 import os
 import sys
 import numpy as np
@@ -108,15 +87,6 @@ def simple_linear_regression_plot(df, feature='enginesize', target='price', plot
 
 
 def multiple_linear_regression_with_ohe(df, target='price'):
-	"""
-	Fit a multiple linear regression model using a mix of numeric and categorical
-	predictors. Demonstrates one-hot encoding (OHE) for categorical variables.
-
-	- Select a handful of numeric columns commonly useful for price prediction.
-	- Choose one categorical column ('carbody') and convert it to OHE.
-	- Fit LinearRegression on the training split and report RMSE and R^2.
-	- Save a simple scatter plot of predicted vs actual prices on the test set.
-	"""
 	# Choose predictors: numeric ones and one categorical column to encode
 	numeric_features = ['enginesize', 'horsepower', 'curbweight', 'citympg']
 	cat_feature = 'carbody'
@@ -149,8 +119,8 @@ def multiple_linear_regression_with_ohe(df, target='price'):
 	rmse = np.sqrt(mse)
 	r2 = r2_score(y_test, y_pred)
 
-	print('\nMultiple linear regression (numeric + one-hot encoded categorical)')
-	print(f'Predictors: {X.shape[1]} features (including OHE columns)')
+	print('\nMultiple linear regression')
+	print(f'Predictors: {X.shape[1]} features')
 	print(f'Test RMSE: {rmse:.3f}, R^2: {r2:.3f}')
 
 	# Save a simple predicted vs actual scatter plot
@@ -162,7 +132,7 @@ def multiple_linear_regression_with_ohe(df, target='price'):
 	plt.xlabel('Actual ' + target)
 	plt.ylabel('Predicted ' + target)
 	plt.title('Multiple regression: Actual vs Predicted')
-	# Show plot interactively; do not save to file when running locally.
+	# Show plot.
 	plt.show()
 
 
