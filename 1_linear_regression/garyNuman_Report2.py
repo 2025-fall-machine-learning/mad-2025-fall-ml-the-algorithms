@@ -32,7 +32,7 @@ from sklearn.metrics import r2_score, mean_squared_error
 # - Normalize column names
 # - Convert numeric columns to numeric types
 # - Drop rows missing enginesize or price (needed for regression)
-df = pd.read_csv("cars.csv")
+df = pd.read_csv("1_linear_regression\cars.csv")
 
 # Standardize column names to lowercase and remove - and " " chars for consistency
 df.columns = df.columns.str.lower().str.replace("-", "").str.replace(" ", "")
