@@ -17,18 +17,22 @@ def print_data_summary(data):
     last_five = ", ".join(f"{x:7.3f}" for x in flattened_numpified_data[-5:])
     print(f"[{first_five}, ..., {last_five}]")
 
+# Function to create the line of best fit
 def create_linear_regression_model(predictors, response):
     model = lm.LinearRegression()
     model.fit(predictors, response)
 
     return model
 
+# Function to perform prediction, creating the plotted data points
 def perform_linear_regression_prediction(model, predictors):
     prediction = model.predict(predictors)
 
     return prediction
 
+# Main function to perform linear regression, simple or multiple
 def linear_regression(simple_or_multiple, cars_df, create_testing_set, one_hot_encode):
+    # Set predictor and response variable values
     if simple_or_multiple == 'multiple' and one_hot_encode:
         carname_dummies = pd.get_dummies(cars_df['CarName'], prefix='CarName')
         predictors = pd.concat([cars_df[['carlength', 'carwidth', 'carheight']], carname_dummies], axis=1).values
@@ -52,14 +56,31 @@ def linear_regression(simple_or_multiple, cars_df, create_testing_set, one_hot_e
         testing_response = None
         testing_prediction = None
 
+    # Create model and perform prediction
     model = create_linear_regression_model(training_predictors, training_response)
     training_prediction = perform_linear_regression_prediction(model, training_predictors)
 
+    # Perform prediction on testing set if created
     if create_testing_set:
         testing_prediction = perform_linear_regression_prediction(model, testing_predictors)
 
-    return training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors
+    return training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors, model
 
+# Function to sort predictors, response, and prediction values based on the first column of the predictor values
+def sort_values(prediction, response, predictors):
+    sorted_index = np.argsort(predictors[:, 0])
+    sorted_prediction = np.array(prediction)[sorted_index]
+    sorted_response = np.array(response)[sorted_index]
+    sorted_predictors = np.array(predictors)[sorted_index, :]
+
+    return sorted_prediction, sorted_response, sorted_predictors
+
+# Function to calculate and print the r-squared value
+def r_squared_value(model, predictors, response):
+    r_squared = model.score(predictors, response)
+    print(f'r-squared value: {r_squared:.4f}')
+
+# Function to print the values of the predictors, prediction, and response
 def printing_values(simple_or_multiple, test_set_created, prediction, response, predictors):
     testing_or_training = 'testing' if test_set_created else 'training'
     if simple_or_multiple == 'simple':
@@ -70,7 +91,11 @@ def printing_values(simple_or_multiple, test_set_created, prediction, response, 
     print_data_summary(prediction)
     print_data_summary(response)
 
-def plotting_values(simple_or_multiple, test_set_created, prediction, response, predictors):
+# Function to plot the values of the predictors, prediction, and response
+def plotting_values(simple_or_multiple, test_set_created, prediction, response, predictors, model):
+    # Print r-squared value
+    r_squared_value(model, predictors, response)
+    # Create scatter plot with line of best fit
     color = 'green' if test_set_created else 'blue'
     label = 'Testing Data' if test_set_created else 'Training Data'
     if simple_or_multiple == 'multiple':
@@ -88,6 +113,7 @@ def plotting_values(simple_or_multiple, test_set_created, prediction, response, 
     plt.legend()
     plt.show()
 
+# Function to handle user input prompts
 def input_prompts():
     print('Welcome to the most restricted linear regression program ever!')
     print('Please input the type of linear regression you would like to perform: simple or multiple?')
@@ -128,21 +154,32 @@ def input_prompts():
 
 def main():
 
+    # Load the dataset
     cars_df = pd.read_csv('cars.csv')
 
+    # Get user inputs for the type of regression and options
     simple_or_multiple, use_testing_set, one_hot_encode = input_prompts()
 
-    training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors \
+    # Perform linear regression
+    training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors, model \
         = linear_regression(simple_or_multiple, cars_df, use_testing_set, one_hot_encode)
+    
+    # Sort values for better plotting
+    training_prediction, training_response, training_predictors = \
+        sort_values(training_prediction, training_response, training_predictors)
+    if use_testing_set:
+        testing_prediction, testing_response, testing_predictors = \
+            sort_values(testing_prediction, testing_response, testing_predictors)
 
+    # Print and plot results
     if use_testing_set:
         printing_values(simple_or_multiple, False, training_prediction, training_response, training_predictors)
         printing_values(simple_or_multiple, use_testing_set, testing_prediction, testing_response, testing_predictors)
-        plotting_values(simple_or_multiple, False, training_prediction, training_response, training_predictors)
-        plotting_values(simple_or_multiple, use_testing_set, testing_prediction, testing_response, testing_predictors)
+        plotting_values(simple_or_multiple, False, training_prediction, training_response, training_predictors, model)
+        plotting_values(simple_or_multiple, use_testing_set, testing_prediction, testing_response, testing_predictors, model)
     else:
         printing_values(simple_or_multiple, use_testing_set, training_prediction, training_response, training_predictors)
-        plotting_values(simple_or_multiple, use_testing_set, training_prediction, training_response, training_predictors)
+        plotting_values(simple_or_multiple, use_testing_set, training_prediction, training_response, training_predictors, model)
 
 if __name__ == "__main__":
     main()

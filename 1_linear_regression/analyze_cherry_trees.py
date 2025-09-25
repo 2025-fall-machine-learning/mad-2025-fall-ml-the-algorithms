@@ -60,8 +60,20 @@ def linear_regression(simple_or_multiple, cherry_tree_df, create_testing_set, on
 
 	if create_testing_set:
 		testing_prediction = perform_linear_regression_prediction(model, testing_predictors)
+	
+	return training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors, model
 
-	return training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors
+def sort_values(prediction, response, predictors):
+	sort_index = np.argsort(predictors[:, 0])
+	sorted_predictors = predictors[sort_index, :]
+	sorted_response = np.array(response)[sort_index]
+	sorted_prediction = np.array(prediction)[sort_index]
+	
+	return sorted_prediction, sorted_response, sorted_predictors
+
+def r_squared_value(model, predictors, response):
+	r_squared = model.score(predictors, response)
+	print(f"r-squared value: {r_squared}")
 
 
 '''
@@ -319,9 +331,9 @@ def main():
 	cherry_tree_df = pd.read_csv('CherryTree.csv')
 
 	# Only code that should need changing.
-	simple_or_multiple = 'multiple' # 'simple' or 'multiple'
-	use_testing_set = False
-	one_hot_encode = True # Only used for multiple linear regression.
+	simple_or_multiple = 'simple' # 'simple' or 'multiple'
+	use_testing_set = True
+	one_hot_encode = False # Only used for multiple linear regression.
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
@@ -330,8 +342,14 @@ def main():
 	# simple_linear_regression(cherry_tree_df, True)
 
 	# Gets values from simple_linear_regression function for printing_testing_values function.
-	training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors \
+	training_prediction, training_response, training_predictors, testing_prediction, testing_response, testing_predictors, model \
 		= linear_regression(simple_or_multiple, cherry_tree_df, use_testing_set, one_hot_encode)
+	
+	training_prediction, training_response, training_predictors = \
+		sort_values(training_prediction, training_response, training_predictors)
+	if use_testing_set:
+		testing_prediction, testing_response, testing_predictors = \
+			sort_values(testing_prediction, testing_response, testing_predictors)
 
 	# multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
@@ -341,10 +359,13 @@ def main():
 	if use_testing_set:
 		printing_values(simple_or_multiple, False, training_prediction, training_response, training_predictors)
 		printing_values(simple_or_multiple, use_testing_set, testing_prediction, testing_response, testing_predictors)
+		r_squared_value(model, training_predictors, training_response)
 		plotting_values(simple_or_multiple, False, training_prediction, training_response, training_predictors)
+		r_squared_value(model, testing_predictors, testing_response)
 		plotting_values(simple_or_multiple, use_testing_set, testing_prediction, testing_response, testing_predictors)
 	else:
 		printing_values(simple_or_multiple, use_testing_set, training_prediction, training_response, training_predictors)
+		r_squared_value(model, training_predictors, training_response)
 		plotting_values(simple_or_multiple, use_testing_set, training_prediction, training_response, training_predictors)
 
 
