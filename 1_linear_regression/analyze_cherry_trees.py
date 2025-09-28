@@ -56,6 +56,8 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 
 	# Perform linear regression.
 	model = create_linear_regression_model(training_predictors, training_response)
+	r_squared = model.score(training_predictors, training_response) # Added r_squared
+	print(f"R-Squared value: {r_squared}") # Print R-Squared value
 	prediction = perform_linear_regression_prediction(model, training_predictors)
 
 	# # y = mx + b. Or in scikit-learn terms: y = model.coef_ * x + model.intercept_. It would take
