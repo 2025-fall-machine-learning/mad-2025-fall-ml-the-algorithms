@@ -16,11 +16,19 @@ def print_1d_data_summary(data_1d, label=None):
 
 
 def plot_regression(x, y_true, y_pred, x_label, y_label, title, color):
+
+    # Sort by x for a cleaner plot
+    sort_idx = np.argsort(x)
+    x_sorted = np.array(x)[sort_idx]
+    y_true_sorted = np.array(y_true)[sort_idx]
+    y_pred_sorted = np.array(y_pred)[sort_idx]
     
-    #Creates a scatter plot of true values and an optional regression line.
-    
-    plt.scatter(x, y_true, color=color, label=f"{x_label} Data")
-    plt.plot(x, y_pred, color='red', label='Best Fit Line')
+    print("I am debugging")
+    print(x_sorted)
+    print(y_pred_sorted)    
+
+    plt.scatter(x_sorted, y_true_sorted, color=color, label=f"{x_label} Data")
+    plt.plot(x_sorted, y_pred_sorted, color='red', label='Best Fit Line')
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.title(title)
@@ -112,28 +120,28 @@ def main():
     df = pd.read_csv('CherryTree.csv')
 
     # Example linear regression: single predictor, no test split
-    regression_workflow(
-       df,
-       predictors_cols=['Diam'],
-       response_col='Height',
-       create_testing_set=False,
-       labels={'predictors': 'Diam', 'response': 'Height'},
-       model_type='linear'
-    )
+    # regression_workflow(
+    #    df,
+    #    predictors_cols=['Diam'],
+    #    response_col='Height',
+    #    create_testing_set=False,
+    #    labels={'predictors': 'Diam', 'response': 'Height'},
+    #    model_type='linear'
+    # )
 
     # To try other runs, just call regression_workflow again with new parameters:
     # regression_workflow(df, ['Diam'], 'Height', create_testing_set=True, labels={'predictors':'Diam','response':'Height'})
     # regression_workflow(df, ['Diam','Height'], 'Volume', create_testing_set=False, labels={'predictors':'Diam','response':'Volume'})
 
     # Example: Multiple linear regression (Diam and Height as predictors for Volume)
-    # regression_workflow(
-    #     df,
-    #     predictors_cols=['Diam', 'Height'],
-    #     response_col='Volume',
-    #     create_testing_set=True,
-    #     labels={'predictors': 'Diam & Height', 'response': 'Volume'},
-    #     model_type='multiple'
-    # )
+    regression_workflow(
+        df,
+        predictors_cols=['Diam', 'Height'],
+        response_col='Volume',
+        create_testing_set=True,
+        labels={'predictors': 'Diam & Height', 'response': 'Volume'},
+        model_type= 'multiple'
+    )
 
 
 if __name__ == "__main__":
