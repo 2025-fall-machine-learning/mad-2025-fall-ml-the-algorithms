@@ -40,6 +40,10 @@ def run_multiple_linear_regression(df, response, drop_cols=None):
     X = pd.get_dummies(df.drop(columns=drop_cols + [response]), drop_first=True)
     y = df[response]
 
+    print("Original columns:", df.columns.tolist())
+    print("Columns after one-hot encoding:", X.columns.tolist())
+    print("Number of features after encoding:", X.shape[1])
+
     # Train/test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
 
@@ -56,6 +60,24 @@ def run_multiple_linear_regression(df, response, drop_cols=None):
     # Show features kept for modeling (low/normal VIF)
     kept_features = list(X_train.columns)
     print("\033[1mFeatures kept for regression (low/normal VIF):\033[0m", kept_features) # Bold output
+
+    # After one-hot encoding
+    num_original = len(df.columns) - len(drop_cols) - 1  # minus response and dropped
+    num_encoded = X.shape[1]
+
+    # ... (after dropping high VIF features)
+    num_dropped = len(high_vif)
+    num_kept = len(X_train.columns)
+
+    # Print summary table (was just curious to see the numbers before and after one-hot)
+    print("\n\033[1mFeature Summary Table\033[0m")
+    print(f"{'Step':35} | {'Number of Features'}")
+    print("-" * 55)
+    print(f"{'Original dataset (excluding drops/response)':35} | {num_original}")
+    print(f"{'After one-hot encoding':35} | {num_encoded}")
+    print(f"{'Dropped (high VIF > 10)':35} | {num_dropped}")
+    print(f"{'Kept for regression (low/normal VIF)':35} | {num_kept}")
+    print("-" * 55)
 
     # Fit model
     model = LinearRegression().fit(X_train, y_train)
@@ -79,7 +101,6 @@ def run_multiple_linear_regression(df, response, drop_cols=None):
 def main():
     df = pd.read_csv("cars.csv")
 
-
     # Simple regression: enginesize vs price
     run_simple_linear_regression(df, predictor="enginesize", response="price")
 
@@ -89,13 +110,6 @@ def main():
         response="price",
         drop_cols=["car_ID", "CarName"]
     )
-
-    #(car_ID is just a unique identifier for each row (like a serial number). 
-            #It does not contain any information useful for predicting price)
-
-#CarName is a text label (the name of the car). 
-# As a string, it is not directly useful for regression, 
-# and one-hot encoding it would create a huge number of unnecessary columns (Possible overfitting).
 
 if __name__ == "__main__":
     main()
