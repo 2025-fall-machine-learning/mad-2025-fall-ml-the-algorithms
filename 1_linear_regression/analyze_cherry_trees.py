@@ -17,8 +17,23 @@ def print_inspection_data(predictors=None, prediction=None, response=None, prefi
 
 # Helper to plot regression results
 def plot_regression(x, y, y_pred, xlabel, ylabel, title, color_data, color_line, label_data, label_line):
-	plt.scatter(x, y, color=color_data, label=label_data)
-	plt.plot(x, y_pred, color=color_line, label=label_line)
+	# Coerce inputs to 1D arrays of matching length.
+	x_arr = np.array(x)
+	if x_arr.ndim > 1:
+		# use first column for x when predictors are 2D
+		x_arr = x_arr[:, 0]
+	y_arr = np.array(y).reshape(-1)
+	ypred_arr = np.array(y_pred).reshape(-1)
+	# Truncate to common length if needed
+	n = min(len(x_arr), len(y_arr), len(ypred_arr))
+	x_arr = x_arr[:n]
+	y_arr = y_arr[:n]
+	ypred_arr = ypred_arr[:n]
+
+	plt.scatter(x_arr, y_arr, color=color_data, label=label_data)
+	# sort by x for plotting the prediction line
+	order = np.argsort(x_arr)
+	plt.plot(x_arr[order], ypred_arr[order], color=color_line, label=label_line)
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 	plt.title(title)
@@ -164,10 +179,10 @@ def main():
 	# print(cherry_tree_df.head())
 
 	simple_linear_regression(cherry_tree_df, False)
-	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
-	# multiple_linear_regression(cherry_tree_df, False, True)
-	# multiple_linear_regression(cherry_tree_df, True, False)
+	#simple_linear_regression(cherry_tree_df, True)
+	#multiple_linear_regression(cherry_tree_df, False, False)
+	#multiple_linear_regression(cherry_tree_df, False, True)
+	#multiple_linear_regression(cherry_tree_df, True, False)
 
 
 if __name__ == "__main__":
