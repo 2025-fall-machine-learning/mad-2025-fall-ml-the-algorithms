@@ -35,19 +35,19 @@ def perform_linear_regression_prediction(model, predictors):
 def create_modified_df(simple_or_multiple, df, one_hot_encode, reference_columns=None):
     # Create modified dataframe based on user inputs
     if simple_or_multiple == 'multiple' and one_hot_encode:
-        carname_dummies = pd.get_dummies(df['CarName'], prefix='CarName')
+        carname_dummies = pd.get_dummies(df['fuelsystem'], prefix='fuelsystem') # Changed from 'carname' to 'fuelsystem'
         # Ensure the dummy columns match the reference columns if provided
         if reference_columns is not None:
             carname_dummies = carname_dummies.reindex(columns=reference_columns, fill_value=0)
         # Combine the one-hot encoded columns with the original dataframe
-        predictors = pd.concat([df[['carwidth', 'carheight']], carname_dummies], axis=1).values # Removed 'carlength'
-        modified_cars_df = pd.DataFrame(predictors, columns=['carwidth', 'carheight'] + list(carname_dummies.columns)) # Removed 'carlength'
+        predictors = pd.concat([df[['carwidth', 'enginesize']], carname_dummies], axis=1).values # Removed 'carlength' and replaced 'carheight' with 'enginesize'
+        modified_cars_df = pd.DataFrame(predictors, columns=['carwidth', 'enginesize'] + list(carname_dummies.columns)) # Removed 'carlength'
         response = df['horsepower'].values
         response_name = 'horsepower'
     # Multiple linear regression without one-hot encoding
     elif simple_or_multiple == 'multiple':
-        predictors = df[['carwidth', 'carheight']].values # Removed 'carlength'
-        modified_cars_df = pd.DataFrame(predictors, columns=['carwidth', 'carheight']) # Removed 'carlength' due to high correlation with 'carwidth'
+        predictors = df[['carwidth', 'enginesize']].values # Removed 'carlength'
+        modified_cars_df = pd.DataFrame(predictors, columns=['carwidth', 'enginesize']) # Removed 'carlength' due to high correlation with 'carwidth'
         response = df['horsepower'].values
         response_name = 'horsepower'
     # Simple linear regression
@@ -141,7 +141,7 @@ def printing_values(simple_or_multiple, test_set_created, prediction, response, 
 
 # Function to plot the values of the predictors, prediction, and response
 def plotting_values(simple_or_multiple, test_set_created, prediction, response, predictors, model):
-    # Print r-squared value
+    # Calculate and print r-squared value
     r_squared_value(model, predictors, response)
     # Create scatter plot with line of best fit
     color = 'green' if test_set_created else 'blue'
@@ -224,15 +224,15 @@ def main():
     if use_testing_set:
         printing_values(simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors)
         printing_values(simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors)
-        r_squared_value(model, sorted_training_predictors, sorted_training_response)
+        # r_squared_value(model, sorted_training_predictors, sorted_training_response)
         linearity_check(training_modified_cars_df, simple_or_multiple, response_name, training_response)
         plotting_values(simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
-        r_squared_value(model, sorted_testing_predictors, sorted_testing_response)
+        # r_squared_value(model, sorted_testing_predictors, sorted_testing_response)
         linearity_check(testing_modified_cars_df, simple_or_multiple, response_name, testing_response)
         plotting_values(simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors, model)
     else:
         printing_values(simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors)
-        r_squared_value(model, sorted_training_predictors, sorted_training_response)
+        # r_squared_value(model, sorted_training_predictors, sorted_training_response)
         linearity_check(training_modified_cars_df, simple_or_multiple, response_name, training_response)
         plotting_values(simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
 
