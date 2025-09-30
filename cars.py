@@ -10,6 +10,7 @@ def find_col(df, candidates):
         if key in canon_map:
             return canon_map[key]
     raise KeyError(f"None of the columns {candidates} were found in {list(df.columns)}")
+import os
 import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
@@ -134,7 +135,28 @@ def multiple_linear_regression_cars(cars_df, create_testing_set, one_hot_encode=
 
 # Main function
 def main():
-    cars_df = pd.read_csv('cars.csv')
+    # Try several likely locations for cars.csv to avoid FileNotFoundError when running from
+    # different working directories.
+    candidates = [
+        'cars.csv',
+        os.path.join('1_linear_regression', 'cars.csv'),
+        os.path.join('data', 'cars.csv'),
+        os.path.join('1_linear_regression', 'cars.csv'),
+        os.path.abspath('cars.csv')
+    ]
+    cars_df = None
+    for p in candidates:
+        try:
+            if os.path.exists(p):
+                cars_df = pd.read_csv(p)
+                print(f"Loaded cars.csv from: {p}")
+                break
+        except Exception:
+            # ignore and try next
+            pass
+    if cars_df is None:
+        tried = '\n'.join(candidates)
+        raise FileNotFoundError(f"Could not find 'cars.csv'. Tried:\n{tried}\nPlease place cars.csv in the project root or specify its path.")
     simple_linear_regression_cars(cars_df, create_testing_set=True)
     multiple_linear_regression_cars(cars_df, create_testing_set=True, one_hot_encode=True)
 
