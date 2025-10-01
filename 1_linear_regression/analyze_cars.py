@@ -7,6 +7,26 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.stattools import durbin_watson
 import numpy as np
 
+# --- Main workflow ---
+def main():
+    df = pd.read_csv("C:/Users/student/OneDrive - Madison College/Mac-Learning-F25/mad-2025-fall-ml-the-algorithms/1_linear_regression/cars.csv")
+
+    # Show a quick heatmap for numeric columns to guide predictor choice
+    try:
+        run_heatmap(df, response='price')
+    except Exception as e:
+        print("Heatmap skipped (error):", e)
+
+    # Simple regression: enginesize vs price
+    run_simple_linear_regression(df, predictor="enginesize", response="price")
+
+    # Multiple regression: drop ID & CarName
+    run_multiple_linear_regression(
+        df,
+        response="price",
+        drop_cols=["car_ID", "CarName"]
+    )
+
 # Simple heatmap helper
 def run_heatmap(df, response=None):
     """Plot a simple correlation heatmap for numeric columns and print top correlations to response."""
@@ -31,26 +51,6 @@ def run_heatmap(df, response=None):
     if response and response in corr.columns:
         print("Top correlations with response:")
         print(corr[response].abs().sort_values(ascending=False).head(10))
-
-# --- Main workflow ---
-def main():
-    df = pd.read_csv("C:/Users/student/OneDrive - Madison College/Mac-Learning-F25/mad-2025-fall-ml-the-algorithms/1_linear_regression/cars.csv")
-
-    # Show a quick heatmap for numeric columns to guide predictor choice
-    try:
-        run_heatmap(df, response='price')
-    except Exception as e:
-        print("Heatmap skipped (error):", e)
-
-    # Simple regression: enginesize vs price
-    run_simple_linear_regression(df, predictor="enginesize", response="price")
-
-    # Multiple regression: drop ID & CarName
-    run_multiple_linear_regression(
-        df,
-        response="price",
-        drop_cols=["car_ID", "CarName"]
-    )
 
 # --- Utility functions ---
 
