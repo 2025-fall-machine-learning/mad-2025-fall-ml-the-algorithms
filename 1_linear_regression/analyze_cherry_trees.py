@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import os
 
 
 def print_1d_data_summary(data_1d, label=None):
@@ -112,12 +113,14 @@ def regression_workflow(
 
 
 def main():
-    
-    # Main entry point:
-    # Reads CSV
-    # Runs regression_workflow with desired settings
-    
-    df = pd.read_csv('CherryTree.csv')
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(
+        script_dir,
+        'CherryTree.csv'
+    )
+
+    df = pd.read_csv(csv_path)
 
     # Example linear regression: single predictor, no test split
     # regression_workflow(
@@ -142,7 +145,6 @@ def main():
         labels={'predictors': 'Diam & Height', 'response': 'Volume'},
         model_type= 'multiple'
     )
-
 
 if __name__ == "__main__":
     main()

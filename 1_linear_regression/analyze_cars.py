@@ -5,6 +5,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import numpy as np
+import os
 
 # --- Utility functions ---
 
@@ -99,7 +100,11 @@ def run_multiple_linear_regression(df, response, drop_cols=None):
 
 # --- Main workflow ---
 def main():
-    df = pd.read_csv("cars.csv")
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(script_dir, "cars.csv")
+
+    df = pd.read_csv(csv_path)
 
     # Simple regression: enginesize vs price
     run_simple_linear_regression(df, predictor="enginesize", response="price")
