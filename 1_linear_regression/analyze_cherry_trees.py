@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 import sklearn.model_selection as ms
+import sklearn.metrics as metrics
 
 
 # Hey! Some nice pretty functions to gain reuse and avoid redundancy!
@@ -78,6 +79,7 @@ def simple_linear_regression(cherry_tree_df, create_testing_set):
 	print_1d_data_summary(training_response)
 
 	# Plot the data and the best fit line.
+	print(training_predictors)
 	plt.scatter(training_predictors, training_response, color='blue', label='Training Data')
 	plt.plot(training_predictors, prediction, color='red', label='Best Fit Line')
 	plt.xlabel('Diam')
@@ -131,12 +133,12 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 	correlation_matrix = modified_cherry_tree_df.corr()
 	volume_correlation_matrix = correlation_matrix[['Volume']].sort_values(by='Volume', ascending=False)
-	sns.heatmap(volume_correlation_matrix, annot=True)
-	plt.show()
+	# sns.heatmap(volume_correlation_matrix, annot=True)
+	# plt.show()
 
 	mask = abs(correlation_matrix) < 0.3
-	sns.heatmap(correlation_matrix, annot=True, mask=mask)
-	plt.show()
+	# sns.heatmap(correlation_matrix, annot=True, mask=mask)
+	# plt.show()
 
 	# # Calculate correlation matrix
 	# correlation_matrix = modified_cherry_tree_df.corr()
@@ -202,54 +204,28 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
 
-	# # Create 3D plot with Diam and Height as independent variables, Volume as dependent variable, and best fit plane
-	# fig = plt.figure(figsize=(12, 8))
-	# ax = fig.add_subplot(111, projection='3d')
-	
-	# # Extract Diam and Height from training_predictors
-	# diam_vals = training_predictors[:, 0]
-	# height_vals = training_predictors[:, 1]
-	
-	# # Scatter plot of actual data points
-	# ax.scatter(diam_vals, height_vals, training_response, color='blue', alpha=0.6, label='Training Data')
-	
-	# # Create meshgrid for the best fit plane
-	# diam_range = np.linspace(diam_vals.min(), diam_vals.max(), 20)
-	# height_range = np.linspace(height_vals.min(), height_vals.max(), 20)
-	# diam_mesh, height_mesh = np.meshgrid(diam_range, height_range)
-	
-	# # Create predictor array for the plane
-	# plane_predictors = np.column_stack([diam_mesh.ravel(), height_mesh.ravel()])
-	
-	# # Handle one-hot encoded features if present
-	# if training_predictors.shape[1] > 2:
-	# 	# Add mean values for the one-hot encoded features
-	# 	mean_encoded_features = np.mean(training_predictors[:, 2:], axis=0)
-	# 	plane_predictors_full = np.column_stack([
-	# 		plane_predictors,
-	# 		np.tile(mean_encoded_features, (plane_predictors.shape[0], 1))
-	# 	])
-	# else:
-	# 	plane_predictors_full = plane_predictors
-	
-	# # Predict volume values for the plane
-	# plane_predictions = model.predict(plane_predictors_full)
-	# plane_predictions = plane_predictions.reshape(diam_mesh.shape)
-	
-	# # Plot the best fit plane
-	# ax.plot_surface(diam_mesh, height_mesh, plane_predictions, alpha=0.3, color='red')
-	
-	# ax.set_xlabel('Diameter')
-	# ax.set_ylabel('Height')
-	# ax.set_zlabel('Volume')
-	# ax.set_title('3D Linear Regression: Diam & Height vs Volume (Training Data)')
-	# plt.show()
+	mse = metrics.mean_squared_error(training_response, prediction)
+	rmse = np.sqrt(mse)
+	print(f"The Training RMSE: {rmse}")
+
+	# Plot the data and the best fit line.
+	plt.scatter(training_predictors[:,0], training_response, color='blue', label='Training Data')
+	plt.plot(training_predictors[:,0], prediction, color='red', label='Best Fit Line')
+	plt.xlabel('Diam')
+	plt.ylabel('Volume')
+	plt.title('Linear Regression: Diam vs Volume (Training Data)')
+	plt.legend()
+	plt.show()
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
 		print("The testing data prediction and response values:")
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
+
+		mse = metrics.mean_squared_error(testing_response, prediction)
+		rmse = np.sqrt(mse)
+		print(f"The Testing RMSE: {rmse}")
 
 		# # Create 3D plot for testing data with best fit plane
 		# fig = plt.figure(figsize=(12, 8))
@@ -297,7 +273,7 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 
 def main():
 	# Cherry tree diameters are easy. Heights are hard.
-	cherry_tree_df = pd.read_csv('CherryTree.csv')
+	cherry_tree_df = pd.read_csv('C:/Users/chwalker/OneDrive - Madison College/Public/mach_learn_f25/mad-2025-fall-ml-the-algorithms/1_linear_regression/CherryTree.csv')
 
 	# Sometimes it's nice to see the raw data.
 	# print(cherry_tree_df.head())
@@ -305,8 +281,9 @@ def main():
 	# simple_linear_regression(cherry_tree_df, False)
 	# simple_linear_regression(cherry_tree_df, True)
 	# multiple_linear_regression(cherry_tree_df, False, False)
-	# multiple_linear_regression(cherry_tree_df, True, False)
-	multiple_linear_regression(cherry_tree_df, False, True)
+	# multiple_linear_regression(cherry_tree_df, False, True)
+	multiple_linear_regression(cherry_tree_df, True, False)
+	# multiple_linear_regression(cherry_tree_df, False, True)
 	# multiple_linear_regression(cherry_tree_df, True, True)
 
 
