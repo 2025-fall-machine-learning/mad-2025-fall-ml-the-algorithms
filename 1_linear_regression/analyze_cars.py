@@ -3,6 +3,13 @@ import pandas as pd
 import sklearn.linear_model as lm
 import matplotlib.pyplot as plt
 import sklearn.model_selection as ms
+from sklearn.metrics import r2_score
+import seaborn as sns
+
+def show_r_squared(model, predictors, response):
+	"""Print R-squared for a fitted model on the provided predictors/response."""
+	r_squared = model.score(predictors, response)
+	return r_squared
 
 
 # Hey! Some nice pretty functions to gain reuse and avoid redundancy!
@@ -53,9 +60,10 @@ def simple_linear_regression(cars_df, create_testing_set):
 			= ms.train_test_split(
 				predictors, response, test_size=0.25, random_state=42)
 
-
 	# Perform linear regression.
 	model = create_linear_regression_model(training_predictors, training_response)
+	print(f"Training data R-Squared: {show_r_squared(model, training_predictors, training_response)}")
+
 	prediction = perform_linear_regression_prediction(model, training_predictors)
 
 	# # y = mx + b. Or in scikit-learn terms: y = model.coef_ * x + model.intercept_. It would take
@@ -74,6 +82,7 @@ def simple_linear_regression(cars_df, create_testing_set):
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
+		print(f"Testing data R-Squared: {show_r_squared(model, testing_predictors, testing_response)}")
 		print("The testing data predictors, prediction and response values:")
 		print_1d_data_summary(testing_predictors)
 		print_1d_data_summary(prediction)
@@ -86,14 +95,44 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 	''' Performs multiple linear regression on the cherry tree data. That is, multiple predictors
 	predicting one response. '''
 
-	if not one_hot_encode:
-		predictors = cars_df[['enginesize', 'horsepower']].values
-	else:
-		# One-hot encode the wheeldrive column (values: rwd, fwd, 4wd).
-		wheeldrive_dummies = pd.get_dummies(cars_df['carbody'], prefix='carbody')
-		predictors = pd.concat([cars_df[['enginesize', 'horsepower']], wheeldrive_dummies], axis=1).values
- 
+	# Precompute one-hot dummies for carbody to reuse for predictors and correlations
+	# carbody_dummies = pd.get_dummies(cars_df['carbody'], prefix='carbody')
+
+	# if not one_hot_encode:
+	predictors = cars_df[['enginesize', 'horsepower','boreratio']].values
+	# else:
+	# predictors = pd.concat([cars_df[['enginesize', 'horsepower']], carbody_dummies], axis=1).values
+		# predictors= carbody_dummies
+	predictors = pd.concat([cars_df[['enginesize', 'horsepower','boreratio']]], axis=1).values
+
 	response = cars_df['price'].values
+
+	# --- Correlation matrix and heatmap ---
+	# Build predictors and response DataFrame to compute correlations together.
+	# Use the same predictors used above, but keep as DataFrame for readability.
+	predictors_df = cars_df[['enginesize', 'horsepower','boreratio']].copy()
+	# Include the precomputed one-hot encoded carbody for correlation purposes
+	# predictors_df = pd.concat([predictors_df, carbody_dummies], axis=1)
+
+	response_series = cars_df['price']
+
+	corr_df = pd.concat([predictors_df, response_series.rename('price')], axis=1).corr()
+
+	plt.figure(figsize=(10, 8))
+	sns.heatmap(corr_df, annot=True, fmt='.2f', cmap='coolwarm', vmin=-1, vmax=1, square=True,
+				cbar_kws={'shrink': .8})
+
+	# Highlight low correlations (absolute value < 0.3) with a semi-transparent overlay
+	low_corr = corr_df.abs() < 0.3
+	overlay = corr_df.copy()
+	overlay[~low_corr] = np.nan
+	sns.heatmap(overlay, annot=False, fmt='', cmap='Greys', cbar=False, square=True,
+				linewidths=0.5, linecolor='black', alpha=0.4)
+	plt.title('Correlation Matrix (values < 0.30 highlighted)')
+	plt.show()
+	# --- end correlation heatmap ---
+	
+
 
 	# If we are not creating a testing set, then we're training on 100% of the data. The name still
 	# applies; it's just that the training set is the entire dataset.
@@ -111,20 +150,21 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 	# Perform linear regression.
 	model = create_linear_regression_model(training_predictors, training_response)
 	prediction = perform_linear_regression_prediction(model, training_predictors)
+	print(f"Training data R-Squared: {show_r_squared(model, training_predictors, training_response)}")
 
 	# # y = mx + b. Or in scikit-learn terms: y = model.coef_ * x + model.intercept_. It would take
 	# # me a while, but I could plot this data by hand and calculate the predictions myself. Find a
 	# # tree diameter, follow it up to the line, then over to the height. I don't have to, but this
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
-
+	
 	print("The training data prediction and response values:")
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(training_response)
-	print("Training predictors:")
-	print(training_predictors)
-	print("Training response:")
-	print(training_response)
+	# print("Training predictors:")
+	# print(training_predictors)
+	# print("Training response:")
+	# print(training_response)
 
 	# Plot the data and the best fit line.
 
@@ -132,6 +172,7 @@ def multiple_linear_regression(cars_df, create_testing_set, one_hot_encode):
 
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
+		print(f"Testing data R-Squared: {show_r_squared(model, testing_predictors, testing_response)}")
 		print("The testing data prediction and response values:")
 		print_1d_data_summary(prediction)
 		print_1d_data_summary(testing_response)
@@ -153,7 +194,8 @@ def main():
 	# Cherry tree diameters are easy. Heights are hard.
 	cars_df = pd.read_csv("C:/Users/cstein2/OneDrive - Madison College/Machine Learning/github info/mad-2025-fall-ml-the-algorithms/1_linear_regression/cars.csv")
 	# Sometimes it's nice to see the raw data.
-	print(cars_df.head())
+	# print(cars_df.head())
+
 
 	# simple_linear_regression(cars_df, False)
 	# simple_linear_regression(cars_df, True)
