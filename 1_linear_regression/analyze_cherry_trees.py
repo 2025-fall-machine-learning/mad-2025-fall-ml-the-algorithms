@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
 import matplotlib.pyplot as plt
+
 import sklearn.model_selection as ms
+import sklearn.metrics as metrics
 
 
 # Hey! Some nice pretty functions to gain reuse and avoid redundancy!
@@ -18,6 +20,9 @@ def print_1d_data_summary(data_1d):
 	last_five = ", ".join(f"{x:7.3f}" for x in flattened_numpified_data[-5:])
 	print(f"[{first_five}, ..., {last_five}]")
 
+def show_r_squared(model, predictors, response):
+	r_squared = model.score(predictors, response)
+	print(f"R-Squared: {r_squared:.3f}")
 
 def create_linear_regression_model(predictors, response):
 	model = lm.LinearRegression()
@@ -127,12 +132,24 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	# # is very good to know. I need to **understand** the algorithm.
 	# print(f'Slope (m): {model.coef_}, y-intercept (b): {model.intercept_}')
 
-	# print("The training data prediction and response values:")
-	# print_1d_data_summary(prediction)
-	# print_1d_data_summary(training_response)
+	print("The training data prediction and response values:")
+	print_1d_data_summary(prediction)
+	print_1d_data_summary(training_response)
+ 
+	mse = metrics.mean_squared_error(training_response, prediction)
+	rmse = np.sqrt(mse)
+	print(f"The Training RMSE: {rmse}")
 
 	# Plot the data and the best fit line.
 	graph(training_predictors[:,0], training_response, "blue", prediction, "Training Data")
+	# plt.scatter(training_predictors[:,0], training_response, color="blue", label="Training Data")
+	# plt.plot(training_predictors[:,0], prediction, color='red', label='Best Fit Line')
+	# plt.xlabel('Diam')
+	# plt.ylabel('Volume')
+	# plt.title('Linear Regression: Diam and Height vs Volume (Training Data)')
+	# plt.legend()
+	# plt.show()
+ 
  
 	if create_testing_set:
 		prediction = perform_linear_regression_prediction(model, testing_predictors)
@@ -150,7 +167,7 @@ def main():
 
 	simple_linear_regression(cherry_tree_df, False)
 	# simple_linear_regression(cherry_tree_df, True)
-	# multiple_linear_regression(cherry_tree_df, False, False)
+	multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
 	# multiple_linear_regression(cherry_tree_df, True, False)
 

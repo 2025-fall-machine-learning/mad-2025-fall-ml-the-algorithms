@@ -314,8 +314,8 @@ def main():
 	# simple_linear_regression(cars_df, True)
 	# multiple_linear_regression(cars_df, False, False)
 	# multiple_linear_regression(cars_df, False, True)
-	# multiple_linear_regression(cars_df, True, True)
-	multiple_linear_regression(cars_df, True, False)
+	multiple_linear_regression(cars_df, True, True)
+	# multiple_linear_regression(cars_df, True, False)
 
 
 if __name__ == "__main__":
