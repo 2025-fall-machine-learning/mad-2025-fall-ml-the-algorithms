@@ -27,7 +27,20 @@ def prepare_features(past, nxt):
     X = past[feature_cols].copy()
     y = past['SurvivalScore'].copy()
     X_next = nxt[feature_cols].copy()
-    return X, y, X_next, feature_cols
+
+    # Select features by absolute correlation with SurvivalScore
+    # Keep both strong positive and strong negative correlations
+    corr_with_target = past[feature_cols + ['SurvivalScore']].corr()['SurvivalScore'].drop('SurvivalScore')
+    # threshold for 'strong' correlation (absolute value)
+    thresh = 0.20
+    selected = corr_with_target[ corr_with_target.abs() >= thresh ].sort_values(key=lambda s: s.abs(), ascending=False)
+    if len(selected) == 0:
+        # fallback: keep all features
+        selected_features = feature_cols
+    else:
+        selected_features = list(selected.index)
+
+    return X[selected_features].copy(), y, X_next[selected_features].copy(), selected_features, corr_with_target
 
 
 def train_and_evaluate(X, y, random_state=42):
@@ -96,7 +109,10 @@ def save_plots(base_path, past, X_test, y_test, y_pred, feature_cols, model, X_n
     # This function will not rely on pred_df above; plots will be built by caller instead
 
 
-def write_briefing(base_path, metrics, coef_series, next_preds_df, plots_relative='plots'):
+
+
+
+def write_briefing(base_path, metrics, coef_series, next_preds_df, selected_features, corr_with_target, plots_relative='plots'):
     # next_preds_df: DataFrame with columns ['Name', 'Predicted'] sorted desc
     briefing_path = os.path.join(base_path, 'briefing.md')
     with open(briefing_path, 'w', encoding='utf-8') as f:
@@ -118,7 +134,13 @@ def write_briefing(base_path, metrics, coef_series, next_preds_df, plots_relativ
         else:
             f.write('- The model explains little variance (R^2 <= 0.3). The specialists appear to rely on factors not captured in the numeric features or apply inconsistent scoring.\n')
 
-        f.write('\n## Important features (top coefficients)\n')
+        f.write('\n## Feature selection by (absolute) correlation with SurvivalScore\n')
+        f.write('Selected features (|corr| >= 0.20), showing correlation and sign:\n')
+        for feat in selected_features:
+            f.write(f"- {feat}: {corr_with_target.loc[feat]:.3f}\n")
+        f.write('\n')
+
+        f.write('## Important features (top coefficients)\n')
         for feat, val in coef_series.head(5).items():
             f.write(f'- {feat}: {val:.3f}\n')
         f.write('\n')
@@ -139,7 +161,7 @@ def write_briefing(base_path, metrics, coef_series, next_preds_df, plots_relativ
 def main():
     base_path = os.path.dirname(__file__)
     past, nxt = load_data(base_path)
-    X, y, X_next, feature_cols = prepare_features(past, nxt)
+    X, y, X_next, feature_cols, corr_with_target = prepare_features(past, nxt)
 
     # Keep Name list for next dataset
     names_next = nxt['Name'].values
@@ -182,7 +204,7 @@ def main():
     plt.savefig(os.path.join(plots_dir, 'correlation_heatmap.png'))
     plt.close()
 
-    # Coefficients bar
+    # Coefficients bar (index matches selected features)
     coefs = pd.Series(model.coef_, index=feature_cols).sort_values(ascending=False)
     plt.figure(figsize=(8, 6))
     coefs.plot(kind='bar')
@@ -205,8 +227,8 @@ def main():
     plt.savefig(os.path.join(plots_dir, 'next_top10.png'))
     plt.close()
 
-    # Write briefing markdown
-    write_briefing(base_path, metrics, coefs, next_preds_df)
+    # Write briefing markdown (include selected features and their correlations)
+    write_briefing(base_path, metrics, coefs, next_preds_df, feature_cols, corr_with_target)
 
     # Also write a CSV with predictions
     next_preds_df.to_csv(os.path.join(base_path, 'next_predictions.csv'), index=False)
