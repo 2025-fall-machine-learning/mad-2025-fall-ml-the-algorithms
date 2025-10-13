@@ -61,7 +61,7 @@ Brief overview of the project:
 - RMSE and r-squared results from predicting survival score, using multiple linear regression. 
     - **Root Mean Squared Error (RMSE): 25.53**
         - This RMSE signifies the model's predictions deviate from actual survial scores by 25 points, on average.
-        - Given the survival scores range from about 0 to 80+, this is a high error, pointing to poor precision.
+        - Given the survival scores range from about 0 to 100, this is a high error, pointing to poor precision.
     - **R-Squared Value: -1.4102**
         - Since the r-squared value is negative, it means the model performed worse than simply predicting the mean of the overall survival scores.
         - This suggests that the expert-assigned trait scores do not capture meaningful patterns in survival outcomes.

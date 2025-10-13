@@ -49,8 +49,9 @@ def create_modified_df(df, model, simple_or_multiple, make_predictions):
         response_name = 'PredictedSurvivalScore'
     else:
         if simple_or_multiple == 'multiple':
-            predictors = df.drop(columns=['Name', 'SurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork']).values # 'Name', 'SurvivalScore'
-            modified_survivors_df = df.drop(columns=['Name', 'SurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork']) # 'Name', 'SurvivalScore'
+            predictors = df.drop(columns=['Name', 'SurvivalScore']).values # 'Name', 'SurvivalScore'
+            modified_survivors_df = df.drop(columns=['Name', 'SurvivalScore']) # 'Name', 'SurvivalScore'
+            # 'Name', 'SurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork'
             # predictors = df[['Leadership', 'MentalToughness', 'SurvivalSkills', 'Risktaking', 'Resourcefulness', 'Adaptability', 'Physicalfitness', 'Teamwork', 'Stubbornness']].values
             # modified_survivors_df = pd.DataFrame(predictors, columns=['Leadership', 'MentalToughness', 'SurvivalSkills', 'Risktaking', 'Resourcefulness', 'Adaptability', 'Physicalfitness', 'Teamwork', 'Stubbornness'])
             response = df['SurvivalScore'].values
