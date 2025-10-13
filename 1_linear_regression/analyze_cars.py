@@ -67,7 +67,7 @@ def create_modified_df(simple_or_multiple, df, one_hot_encode, reference_columns
 def linear_regression(simple_or_multiple, cars_df, create_testing_set, one_hot_encode):
     # Set training and testing variable values
     if create_testing_set:
-        training_df, testing_df = ms.train_test_split(cars_df, test_size=0.25)
+        training_df, testing_df = ms.train_test_split(cars_df, test_size=0.25) # random_state = 42
     else:
         training_df = cars_df
         testing_df = None
