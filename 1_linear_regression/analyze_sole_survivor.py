@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
@@ -20,7 +19,7 @@ from its folder. It expects `sole_survivor_past.csv` to live in the same folder.
 """
 
 
-def main():
+def main(show_plots: bool = False):
 	base_dir = os.path.dirname(__file__)
 	csv_path = os.path.join(base_dir, "sole_survivor_past.csv")
 
@@ -50,15 +49,21 @@ def main():
 	# Short dataset summary
 	print(f"Rows: {len(df)}; Features: {feature_cols}")
 
-	# Correlation heatmap (features + target)
+	# Correlation heatmap (features + target) - matplotlib only
 	corr = df[feature_cols + ['SurvivalScore']].corr()
 	plt.figure(figsize=(10, 8))
-	sns.heatmap(corr, annot=True, fmt='.2f', cmap='coolwarm', square=True)
+	im = plt.imshow(corr, cmap='coolwarm', vmin=-1, vmax=1)
+	plt.colorbar(im)
+	ticks = np.arange(len(corr.columns))
+	plt.xticks(ticks, corr.columns, rotation=45, ha='right')
+	plt.yticks(ticks, corr.columns)
+	# annotate cells
+	for i in range(len(corr.columns)):
+		for j in range(len(corr.columns)):
+			plt.text(j, i, f"{corr.iloc[i, j]:.2f}", ha='center', va='center', color='black', fontsize=8)
 	plt.title('Correlation matrix (features and SurvivalScore)')
-	heatmap_path = os.path.join(base_dir, 'corr_heatmap.png')
 	plt.tight_layout()
-	plt.savefig(heatmap_path)
-	plt.close()
+	plt.show()
 
 	# Train/test split
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -88,7 +93,9 @@ def main():
 	y_pred = np.asarray(y_pred).ravel()
 	test_r2 = r2_score(y_test, y_pred)
 	test_mae = mean_absolute_error(y_test, y_pred)
-	test_rmse = mean_squared_error(y_test, y_pred, squared=False)
+	# compute RMSE without using the `squared` kwarg for compatibility with older sklearn
+	test_mse = mean_squared_error(y_test, y_pred)
+	test_rmse = float(np.sqrt(test_mse))
 
 	# Coefficients (standardized)
 	# Coefficients (standardized) - make robust to shape issues
@@ -109,41 +116,32 @@ def main():
 	coef_df = coef_df.sort_values('abs_coef', ascending=False).drop(columns=['abs_coef'])
 
 	plt.figure(figsize=(9, 5))
-	# seaborn may raise a TypeError if dtypes are unexpected; fallback to matplotlib
-	try:
-		sns.barplot(data=coef_df, x='coef', y='feature', palette='vlag')
-	except TypeError:
-		plt.barh(coef_df['feature'], coef_df['coef'])
+	plt.barh(coef_df['feature'], coef_df['coef'], color='C0')
 	plt.axvline(0, color='k', linewidth=0.5)
+	plt.xlabel('Standardized coefficient')
 	plt.title('Standardized linear regression coefficients')
-	coef_path = os.path.join(base_dir, 'coefficients.png')
 	plt.tight_layout()
-	plt.savefig(coef_path)
-	plt.close()
+	plt.show()
 
 	# Predicted vs actual
 	plt.figure(figsize=(6, 6))
 	plt.scatter(y_test, y_pred, alpha=0.8)
-	mn, mx = min(y_test.min(), y_pred.min()), max(y_test.max(), y_pred.max())
+	mn, mx = min(float(np.min(y_test)), float(np.min(y_pred))), max(float(np.max(y_test)), float(np.max(y_pred)))
 	plt.plot([mn, mx], [mn, mx], 'r--', linewidth=1)
 	plt.xlabel('Actual SurvivalScore (test)')
 	plt.ylabel('Predicted SurvivalScore')
 	plt.title(f'Predicted vs Actual (R²={test_r2:.3f}, MAE={test_mae:.2f})')
-	pv_path = os.path.join(base_dir, 'predicted_vs_actual.png')
 	plt.tight_layout()
-	plt.savefig(pv_path)
-	plt.close()
+	plt.show()
 
 	# Residuals
 	residuals = y_test - y_pred
 	plt.figure(figsize=(6, 4))
-	sns.histplot(residuals, kde=True)
+	plt.hist(residuals, bins=15, alpha=0.7, color='C1')
 	plt.xlabel('Residual (actual - predicted)')
 	plt.title('Residual distribution (test set)')
-	res_path = os.path.join(base_dir, 'residuals_hist.png')
 	plt.tight_layout()
-	plt.savefig(res_path)
-	plt.close()
+	plt.show()
 
 	# Compose briefing
 	top_pos = coef_df[coef_df['coef'] > 0].head(3)
@@ -175,7 +173,7 @@ def main():
 		f'- The linear model explains about {cv_r2.mean():.2f} (mean CV R²) of the variance in the expert SurvivalScore. ',
 		'- This indicates experts are generally consistent: their numeric sub-scores contain meaningful signal about the final SurvivalScore, but a large portion of variance remains unexplained (subjectivity, omitted features, or nonlinearity).',
 		f'- Typical prediction error (CV MAE) is {cv_mae.mean():.2f} points on the SurvivalScore scale; test MAE={test_mae:.2f}.',
-		'- Visual artifacts saved: correlation heatmap, coefficient importance, predicted vs actual, and residuals. Inspect these to find nonlinearity or outliers.',
+	'- Visual artifacts (correlation heatmap, coefficient importance, predicted vs actual, and residuals) are displayed inline when the script runs.',
 		'',
 		'Validity and caveats:',
 		'- Sample size is small (n=%d), so variance in CV estimates may be large.' % len(df),
@@ -186,11 +184,7 @@ def main():
 		'- For a winner predictor, test regularized linear models (Ridge/Lasso) and tree-based models (RandomForest/GradientBoosting) and validate on future-season data.',
 		'- Consider collecting multiple expert ratings per contestant to measure inter-rater reliability and reduce noise.',
 		'',
-		'Saved files:',
-		f' - {heatmap_path}',
-		f' - {coef_path}',
-		f' - {pv_path}',
-		f' - {res_path}',
+	'Note: plots are displayed inline; no image files are written by default.',
 	])
 
 	briefing_text = "\n".join(briefing_lines)
@@ -200,11 +194,7 @@ def main():
 		f.write(briefing_text)
 
 	print('\nBriefing saved to', briefing_file)
-	print('\nSaved plots:')
-	print(' ', heatmap_path)
-	print(' ', coef_path)
-	print(' ', pv_path)
-	print(' ', res_path)
+	print('\nPlots were displayed inline during the run; no image files were written.')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,36 @@
+Briefing: Evaluation of expert SurvivalScore ratings
+--------------------------------------------------
+Rows analyzed: 100
+
+Modeling approach: standardized linear regression using expert sub-scores.
+Cross-validated R² (5-fold): mean=0.737, std=0.118
+Cross-validated MAE (5-fold): mean=6.62
+
+Test set (20%) performance: R²=0.791, MAE=5.69, RMSE=7.85
+
+Top features pushing SurvivalScore higher (standardized coef):
+ - Adaptability: coef=17.271
+ - Teamwork: coef=14.488
+ - SurvivalSkills: coef=12.085
+
+Top features pushing SurvivalScore lower (standardized coef):
+ - Leadership: coef=-13.971
+ - Stubbornness: coef=-9.312
+ - Resourcefulness: coef=-8.521
+
+Interpretation:
+- The linear model explains about 0.74 (mean CV R²) of the variance in the expert SurvivalScore. 
+- This indicates experts are generally consistent: their numeric sub-scores contain meaningful signal about the final SurvivalScore, but a large portion of variance remains unexplained (subjectivity, omitted features, or nonlinearity).
+- Typical prediction error (CV MAE) is 6.62 points on the SurvivalScore scale; test MAE=5.69.
+- Visual artifacts (correlation heatmap, coefficient importance, predicted vs actual, and residuals) are displayed inline when the script runs.
+
+Validity and caveats:
+- Sample size is small (n=100), so variance in CV estimates may be large.
+- Linear model assumes additive effects and no strong interactions; if experts weigh features nonlinearly, the linear fit will miss that.
+- There may be collinearity between sub-scores (see heatmap) which affects coefficient stability.
+
+Recommendations:
+- For a winner predictor, test regularized linear models (Ridge/Lasso) and tree-based models (RandomForest/GradientBoosting) and validate on future-season data.
+- Consider collecting multiple expert ratings per contestant to measure inter-rater reliability and reduce noise.
+
+Note: plots are displayed inline; no image files are written by default.
