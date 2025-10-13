@@ -4,6 +4,7 @@ import sklearn.linear_model as lm
 import matplotlib.pyplot as plt
 import sklearn.model_selection as ms
 import seaborn as sns
+import sklearn.metrics as metrics
 
 # Function to print summaries of the data
 def print_data_summary(data):
@@ -107,6 +108,12 @@ def r_squared_value(model, predictors, response):
     r_squared = model.score(predictors, response)
     print(f'r-squared value: {r_squared:.4f}')
 
+# Function to calculate and print the root mean squared error
+def root_mean_squared_error(prediction, response):
+    mse = metrics.mean_squared_error(response, prediction)
+    rmse = np.sqrt(mse)
+    print(f'The RMSE: {rmse}')
+
 # Function to create a heatmap for linearity check
 def linearity_check(modified_cars_df, simple_or_multiple, response_name, response_values, top_n=10):
     # Create correlation matrix
@@ -141,6 +148,8 @@ def printing_values(simple_or_multiple, test_set_created, prediction, response, 
 
 # Function to plot the values of the predictors, prediction, and response
 def plotting_values(simple_or_multiple, test_set_created, prediction, response, predictors, model):
+    # Calculate and print root mean squared error
+    root_mean_squared_error(prediction, response)
     # Calculate and print r-squared value
     r_squared_value(model, predictors, response)
     # Create scatter plot with line of best fit
@@ -160,6 +169,7 @@ def plotting_values(simple_or_multiple, test_set_created, prediction, response, 
     plt.title(title)
     plt.legend()
     plt.show()
+    # plt.savefig('cars_analysis_plot.png')
 
 # Function to handle user input prompts
 def input_prompts():

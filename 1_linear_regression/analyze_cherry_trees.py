@@ -3,6 +3,7 @@ import pandas as pd
 import sklearn.linear_model as lm
 import matplotlib.pyplot as plt
 import sklearn.model_selection as ms
+import sklearn.metrics as metrics
 
 
 # Hey! Some nice pretty functions to gain reuse and avoid redundancy!
@@ -241,6 +242,10 @@ def printing_values(simple_or_multiple, test_set_created, prediction, response, 
 	print_1d_data_summary(prediction)
 	print_1d_data_summary(response)
 
+	mse = metrics.mean_squared_error(response, prediction)
+	rmse = np.sqrt(mse)
+	print(f'The RMSE: {rmse}')
+
 
 '''
 def printing_values(simple_or_mulitple, test_set_created, 
@@ -332,7 +337,7 @@ def main():
 
 	# Only code that should need changing.
 	simple_or_multiple = 'simple' # 'simple' or 'multiple'
-	use_testing_set = True
+	use_testing_set = False
 	one_hot_encode = False # Only used for multiple linear regression.
 
 	# Sometimes it's nice to see the raw data.
