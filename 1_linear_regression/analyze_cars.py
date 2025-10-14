@@ -38,8 +38,13 @@ def perform_linear_regression_prediction(model, predictors):
 
 	return prediction
 
+def perform_linear_regression_prediction(model, predictors):
+	prediction = model.predict(predictors)
 
-# Egads! The simple_linear_regression and multiple_linear_regression functions have a lot of
+	return prediction
+
+
+# Egads! The simple_linear_regression and multiple_linear_regression function s have a lot of
 # common code! We are violating our most sacred principle: Reuse! (or DRY (Don't Repeat Yourself).)
 def simple_linear_regression(cars_df, create_testing_set):
 	''' Performs simple linear regression on the cherry tree data. That is, one predictor
