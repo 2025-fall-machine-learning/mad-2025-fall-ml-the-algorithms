@@ -53,6 +53,49 @@ def perform_linear_regression_prediction(model, predictors):
     
     return prediction
 
+def analyze_predictors_heatmap(sole_survivor_past_df, target='SurvivalScore', top_n=None, include_categorical=None):
+    """
+    Show a correlation heatmap and print the top correlated predictors with `target`.
+    - include_categorical: list of categorical column names to one-hot encode before correlation (e.g. ['Name'])
+    - top_n: if set, only print top_n predictors by absolute correlation with target
+    """
+    sole_survivor_past_df = sole_survivor_past_df.copy()
+    # one-hot encode requested categorical columns so they can appear in the matrix
+    if include_categorical:
+        for col in include_categorical:
+                sole_survivor_past_df[col] = sole_survivor_past_df[col].astype(str).str.strip().fillna("")
+                cat_dummies = pd.get_dummies(sole_survivor_past_df[include_categorical], prefix=include_categorical)
+                sole_survivor_past_df = pd.concat([sole_survivor_past_df.drop(columns=include_categorical), cat_dummies.reset_index(drop=True)], axis=1)
+    
+    # keep numeric columns only (correlation requires numeric)
+    numeric = sole_survivor_past_df.select_dtypes(include=[np.number]).copy()
+    # drop constant columns (no variance)
+    numeric = numeric.loc[:, numeric.apply(pd.Series.nunique) > 1]
+    
+    if numeric.shape[1] == 0:
+        print("No numeric columns available for correlation analysis.")
+        return
+
+    corr = numeric.corr()
+    
+    # plot heatmap
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+    plt.figure(figsize=(max(8, corr.shape[0]*0.3), max(6, corr.shape[1]*0.3)))
+    sns.heatmap(corr, mask=mask, annot=True, fmt=".2f", cmap='coolwarm', vmin=-1, vmax=1, cbar_kws={"shrink": .5})
+    plt.title("Correlation Heatmap")
+    plt.show()
+    
+    # show correlation of each feature with the target, sorted by absolute value
+    if target in corr.columns:
+        corr_target = corr[target].drop(labels=target)
+        corr_target = corr_target.reindex(corr_target.abs().sort_values(ascending=False).index)  # sort by abs desc
+        if top_n:
+            corr_target = corr_target.head(top_n)
+        print(f"Predictors sorted by correlation with {target!r}:")
+        print(corr_target.to_string())
+    else:
+        print(f"Target column {target!r} not present among numeric columns. Consider ensuring it's numeric or included above.")
+
 def simple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=True):
     # Ensure names are strings without leading/trailing whitespace, then one-hot encode
     sole_survivor_past_df["Name"] = sole_survivor_past_df["Name"].astype(str).str.strip().fillna("")
@@ -104,8 +147,8 @@ def multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set,
     new_past_df["Name"] = new_past_df["Name"].astype(str).str.strip().fillna("")
     
     # numeric columns that may exist in your dataset - adjust as needed
-    numeric_cols = ["Leadership", "MentalToughness", "SurvivalSkills", "RiskTaking", 
-                    "Resourcefulness", "Adaptability", "PhysicalFitness", "Teamwork", "Stubbornness"]
+    numeric_cols = ["MentalToughness", "SurvivalSkills", "Adaptability", 
+                    "PhysicalFitness", "Stubbornness"]
     
     # ensure numeric columns exist and are numeric
     for col in numeric_cols:
@@ -130,12 +173,12 @@ def multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set,
         
     # If SurvivalScore is missing or all zeros, compute it as the sum of the numeric predictors
     if new_past_df["NewSurvivalScore"].abs().sum() == 0:
-        # sum only the numeric predictors except Stubbornness, then subtract Stubbornness (exclude one-hot name columns). 
+        # sum only the numeric_cols (exclude one-hot name columns). 
         # If you want to include the one-hot name columns, use: df[[*numeric_cols, *name_dummies.columns]].sum(axis=1)
-        cols_except_stubborn = [c for c in numeric_cols if c != "Stubbornness"]
-        new_past_df["NewSurvivalScore"] = new_past_df[cols_except_stubborn].sum(axis=1) - new_past_df["Stubbornness"]
+        new_past_df["NewSurvivalScore"] = new_past_df[numeric_cols].sum(axis=1)
     
-    response = new_past_df["NewSurvivalScore"].values
+    response = new_past_df["SurvivalScore"].values
+
     
     # Show top 3 names with highest SurvivalScore
     try:
@@ -215,8 +258,8 @@ def multiple_linear_regression_ssnext(sole_survivor_next_df, create_testing_set,
     new_next_df["Name"] = new_next_df["Name"].astype(str).str.strip().fillna("")
     
     # numeric columns that may exist in your dataset - adjust as needed
-    numeric_cols = ["Leadership", "MentalToughness", "SurvivalSkills", "RiskTaking", 
-                    "Resourcefulness", "Adaptability", "PhysicalFitness", "Teamwork", "Stubbornness"]
+    numeric_cols = ["MentalToughness", "SurvivalSkills", "Adaptability", 
+                    "PhysicalFitness", "Stubbornness"]
     
     # ensure numeric columns exist and are numeric
     for col in numeric_cols:
@@ -241,10 +284,9 @@ def multiple_linear_regression_ssnext(sole_survivor_next_df, create_testing_set,
 
     # If SurvivalScore is missing or all zeros, compute it as the sum of the numeric predictors
     if new_next_df["SurvivalScore"].abs().sum() == 0:
-        # sum only the numeric predictors except Stubbornness, then subtract Stubbornness (exclude one-hot name columns). 
+        # sum only the numeric_cols (exclude one-hot name columns). 
         # If you want to include the one-hot name columns, use: df[[*numeric_cols, *name_dummies.columns]].sum(axis=1)
-        cols_except_stubborn = [c for c in numeric_cols if c != "Stubbornness"]
-        new_next_df["SurvivalScore"] = new_next_df[cols_except_stubborn].sum(axis=1) - new_next_df["Stubbornness"]
+        new_next_df["SurvivalScore"] = new_next_df[numeric_cols].sum(axis=1)
 
     response = new_next_df["SurvivalScore"].values
     
@@ -392,6 +434,7 @@ def graph(pred, resp, whatcolor, prediction, whatlabel, name_labels=None):
 def main():
     
     sole_survivor_past_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/1_linear_regression/sole_survivor_past.csv", skipinitialspace=True)
+    # analyze_predictors_heatmap(sole_survivor_past_df, target='SurvivalScore', top_n=10, include_categorical=['Name'])
     sole_survivor_past_df["Name"] = sole_survivor_past_df["Name"].astype(str).str.strip()
     
     sole_survior_next_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/1_linear_regression/sole_survivor_next.csv", skipinitialspace=True)
@@ -402,12 +445,12 @@ def main():
     # multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=False, one_hot_encode=False)
     # multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=False, one_hot_encode=True)
     # multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=True, one_hot_encode=False)
-    # multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=True, one_hot_encode=True)
+    multiple_linear_regression_sspast(sole_survivor_past_df, create_testing_set=True, one_hot_encode=True)
     
     # multiple_linear_regression_ssnext(sole_survior_next_df, create_testing_set=False, one_hot_encode=False)
     # multiple_linear_regression_ssnext(sole_survior_next_df, create_testing_set=False, one_hot_encode=True)
     # multiple_linear_regression_ssnext(sole_survior_next_df, create_testing_set=True, one_hot_encode=False)
-    multiple_linear_regression_ssnext(sole_survior_next_df, create_testing_set=True, one_hot_encode=True)
+    # multiple_linear_regression_ssnext(sole_survior_next_df, create_testing_set=True, one_hot_encode=True)
     
 if __name__ == "__main__":
     main()
