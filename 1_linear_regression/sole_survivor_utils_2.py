@@ -1,26 +1,21 @@
-"""
-sole_survivor_utils.py
-
-Utilities for analyzing Sole Survivor data and training a regression model
-to evaluate expert initial ratings and predict overall survival scores.
-
-- Standardizes column names
-- Auto-detects numeric vs categorical features
-- Correlation diagnostics (linearity to target; independence among predictors)
-- Linear Regression training & evaluation
-- Optional Feature Selection (K-Best, Mutual Info, RFE, or Lasso-based)
-- Plotting helpers (Pred vs Actual, Residuals, Corr Heatmap)
-"""
+# sole_survivor_utils.py
+# Utilities for analyzing Sole Survivor data and training a regression model
+# to evaluate expert initial ratings and predict overall survival scores.
 
 from __future__ import annotations
 
+# -----------------------------
+# Imports
+# -----------------------------
 from dataclasses import dataclass
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
+from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression, LassoCV
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.feature_selection import (
@@ -35,9 +30,8 @@ from sklearn.feature_selection import (
 # Small helpers
 # -----------------------------
 
-# Standardizes DataFrame column names (lowercase, no spaces/dashes)
+# Normalize headers so downstream code can rely on consistent names (strip, lowercase, remove spaces/hyphens).
 def standardize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Lowercase headers; remove spaces and dashes."""
     df = df.copy()
     df.columns = (
         df.columns.str.strip()
@@ -47,20 +41,16 @@ def standardize_columns(df: pd.DataFrame) -> pd.DataFrame:
     )
     return df
 
-
-# Calculates Root Mean Squared Error between true and predicted values
+# Compute Root Mean Squared Error; handy for regression evaluation alongside R^2.
 def rmse(y_true, y_pred) -> float:
-    """Return the root mean squared error between actual and predicted values."""
     return float(mean_squared_error(y_true, y_pred) ** 0.5)
-
 
 # -----------------------------
 # Feature diagnostics
 # -----------------------------
 
-# Identifies which columns are numeric vs categorical (ignores the target column)
+# Split columns into numeric vs categorical (excluding the target) for encoding strategy.
 def detect_feature_types(df: pd.DataFrame, target: str):
-    """Infer numeric and categorical feature lists automatically, excluding the target."""
     numeric_feats, categorical_feats = [], []
     for c in df.columns:
         if c == target:
@@ -75,10 +65,8 @@ def detect_feature_types(df: pd.DataFrame, target: str):
             categorical_feats.append(c)
     return numeric_feats, categorical_feats
 
-
-# Computes Pearson correlations between each numeric feature and the target
+# Compute Pearson correlations of numeric features vs the target and sort by |r|.
 def correlations_with_target(df: pd.DataFrame, target: str, features: list[str]) -> pd.Series:
-    """Pearson correlations of numeric features vs target."""
     numeric = [c for c in features if pd.api.types.is_numeric_dtype(df[c])]
     if not numeric:
         return pd.Series(dtype=float)
@@ -89,19 +77,15 @@ def correlations_with_target(df: pd.DataFrame, target: str, features: list[str])
         .sort_values(key=lambda s: s.abs(), ascending=False)
     )
 
-
-# Builds correlation matrix among numeric predictors to check for multicollinearity
+# Build a numeric predictor↔predictor correlation matrix to check multicollinearity.
 def predictor_independence_matrix(df: pd.DataFrame, features: list[str]) -> pd.DataFrame:
-    """Predictor-predictor correlation matrix for numeric features."""
     numeric = [c for c in features if pd.api.types.is_numeric_dtype(df[c])]
     if not numeric:
         return pd.DataFrame()
     return df[numeric].corr()
 
-
-# Finds pairs of numeric predictors that are highly correlated (above threshold)
+# List pairs of numeric predictors whose absolute correlation exceeds a threshold.
 def find_high_corr_pairs(corr_mat: pd.DataFrame, threshold: float = 0.8):
-    """Return highly correlated numeric predictor pairs above |threshold|."""
     pairs = []
     if corr_mat.empty:
         return pairs
@@ -114,14 +98,12 @@ def find_high_corr_pairs(corr_mat: pd.DataFrame, threshold: float = 0.8):
                 pairs.append((a, b, val))
     return pairs
 
-
 # -----------------------------
 # Plotting helpers
 # -----------------------------
 
-# Draws a heatmap showing correlation between predictors
+# Visualize predictor↔predictor correlations (upper triangle) to spot clusters/collinearity.
 def plot_corr_heatmap(corr_mat: pd.DataFrame, title: str):
-    """Upper-triangular heatmap for predictor correlation matrix."""
     if corr_mat.empty:
         print("No numeric predictors available for independence heatmap.")
         return
@@ -135,13 +117,10 @@ def plot_corr_heatmap(corr_mat: pd.DataFrame, title: str):
     plt.tight_layout()
     plt.show()
 
-
-# Creates a scatter plot of predicted vs actual target values, with descriptive title
+# Show predicted vs actual with a 45° line to assess calibration and fit quality.
 def plot_pred_vs_actual(y_true, y_pred, title: str, target_name: str = "Survival Score"):
-    """Predicted vs Actual scatter with 45° reference line and contextual title."""
     lo = float(min(np.min(y_true), np.min(y_pred)))
     hi = float(max(np.max(y_true), np.max(y_pred)))
-
     plt.figure(figsize=(6, 4))
     plt.scatter(y_true, y_pred, alpha=0.6, edgecolors="w", linewidth=0.5)
     plt.plot([lo, hi], [lo, hi], linestyle="--", color="gray")
@@ -153,10 +132,8 @@ def plot_pred_vs_actual(y_true, y_pred, title: str, target_name: str = "Survival
     plt.tight_layout()
     plt.show()
 
-
-# Plots residuals (difference between actual and predicted) to check model fit
+# Plot residuals vs predicted to check heteroscedasticity and model misspecification.
 def plot_residuals(y_true, y_pred, title: str, target_name: str = "Survival Score"):
-    """Residuals vs Predicted to assess heteroscedasticity, with contextual title."""
     resid = y_true - y_pred
     plt.figure(figsize=(6, 4))
     plt.scatter(y_pred, resid, alpha=0.6, edgecolors="w", linewidth=0.5)
@@ -167,29 +144,31 @@ def plot_residuals(y_true, y_pred, title: str, target_name: str = "Survival Scor
     plt.tight_layout()
     plt.show()
 
-
 # -----------------------------
 # Modeling pipeline
 # -----------------------------
 
-# Simple container for model, metrics, and predicted values - simpler in the long run...
+# Hold all training outputs: model, metrics, features, predictions, and selector info.
 @dataclass
 class ModelArtifacts:
     model: LinearRegression
     train_metrics: dict
     test_metrics: dict
-    feature_columns: list            # pre-selection columns (after one-hot)
+    feature_columns: list            # post-encoding columns (pre-selection)
     y_train: np.ndarray
     y_train_pred: np.ndarray
     y_test: np.ndarray
     y_test_pred: np.ndarray
     selector: object | None = None   # fitted selector (if any)
-    selected_features: list | None = None  # names of columns kept (when available)
+    selected_features: list | None = None  # selected column names (if available)
 
-
-# Builds X (features) and y (target) with categorical encoding if necessary
-def build_design_matrices(df: pd.DataFrame, target: str, numeric_feats: list[str] | None = None, categorical_feats: list[str] | None = None):
-    """Build X (with one-hot encoded categoricals) and y. Auto-detect features when None."""
+# Build model-ready X (numeric + one-hot categoricals) and numeric y; drop ID-like categoricals to avoid leakage.
+def build_design_matrices(
+    df: pd.DataFrame,
+    target: str,
+    numeric_feats: list[str] | None = None,
+    categorical_feats: list[str] | None = None
+):
     if numeric_feats is None or categorical_feats is None:
         auto_num, auto_cat = detect_feature_types(df, target)
         if numeric_feats is None:
@@ -197,18 +176,12 @@ def build_design_matrices(df: pd.DataFrame, target: str, numeric_feats: list[str
         if categorical_feats is None:
             categorical_feats = auto_cat
 
-    # Drop identifier-like categorical features before encoding (prevents leakage)
-    safe_cat_feats = [
-        c for c in categorical_feats
-        if c.lower() not in ("name", "id", "player", "contestant")
-    ]
+    safe_cat_feats = [c for c in categorical_feats if c.lower() not in ("name", "id", "player", "contestant")]
 
-    # Optional: notify developer when identifiers are dropped
     dropped = set(categorical_feats) - set(safe_cat_feats)
     if dropped:
-        print(f" Dropped identifier-like categorical columns: {list(dropped)}")
+        print(f"⚠️ Dropped identifier-like categorical columns: {list(dropped)}")
 
-    # Build data subset for modeling
     cols = [c for c in (numeric_feats + safe_cat_feats + [target]) if c in df.columns]
     data = df[cols].copy()
 
@@ -217,19 +190,11 @@ def build_design_matrices(df: pd.DataFrame, target: str, numeric_feats: list[str
         columns=safe_cat_feats, drop_first=True, dtype=int
     )
     y = pd.to_numeric(data[target], errors="coerce")
+
     return X, y, numeric_feats, safe_cat_feats
 
-
-# -----------------------------
-# Feature selection
-# -----------------------------
-
+# Build an unfitted selector to reduce features; fit on TRAIN ONLY in the modeling step.
 def make_feature_selector(method: str = "kbest", k: int = 10):
-    """
-    Return an unfitted sklearn-style selector.
-      method: "kbest" (f_regression), "kbest_mi" (mutual_info), "rfe", "lasso_sfmodel"
-      k: number of features to keep for k-best / RFE
-    """
     m = method.lower()
     if m == "kbest":
         return SelectKBest(score_func=f_regression, k=k)
@@ -238,32 +203,26 @@ def make_feature_selector(method: str = "kbest", k: int = 10):
     if m == "rfe":
         return RFE(estimator=LinearRegression(), n_features_to_select=k, step=1)
     if m == "lasso_sfmodel":
-        # Embedded selection using LassoCV; threshold='median' keeps ~50% by magnitude
         return SelectFromModel(estimator=LassoCV(cv=5, random_state=99), threshold="median")
     raise ValueError(f"Unknown feature selection method: {method}")
 
-
-# Trains a linear regression model, evaluates it, and returns metrics + predictions
+# Split, (optionally) select features on TRAIN ONLY, fit LinearRegression, and compute metrics.
 def fit_evaluate_linear_regression(
-    X, y, test_size=0.25, random_state=99, selector=None
-):
-    from sklearn.model_selection import train_test_split
-    from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import r2_score, mean_squared_error
-    import numpy as np
-
-    def _rmse(y_true, y_pred):
-        return float(mean_squared_error(y_true, y_pred) ** 0.5)
-
+    X: pd.DataFrame,
+    y: pd.Series,
+    test_size: float = 0.25,
+    random_state: int = 99,
+    selector=None,
+) -> ModelArtifacts:
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
 
     selected_columns = None
     if selector is not None:
-        selector.fit(X_train, y_train)          # fit on TRAIN ONLY
+        selector.fit(X_train, y_train)          # fit on TRAIN ONLY to prevent leakage
         X_train = selector.transform(X_train)
-        X_test  = selector.transform(X_test)
+        X_test = selector.transform(X_test)
         try:
             support = selector.get_support()
             selected_columns = X.columns[support].tolist()
@@ -272,41 +231,52 @@ def fit_evaluate_linear_regression(
 
     model = LinearRegression()
     model.fit(X_train, y_train)
-    y_pred_train = model.predict(X_train)
-    y_pred_test  = model.predict(X_test)
 
-    from dataclasses import dataclass
-    @dataclass
-    class ModelArtifacts:
-        model: LinearRegression
-        train_metrics: dict
-        test_metrics: dict
-        feature_columns: list
-        y_train: np.ndarray
-        y_train_pred: np.ndarray
-        y_test: np.ndarray
-        y_test_pred: np.ndarray
-        selector: object | None = None
-        selected_features: list | None = None
+    y_pred_train = model.predict(X_train)
+    y_pred_test = model.predict(X_test)
 
     return ModelArtifacts(
         model=model,
-        train_metrics={"r2": float(r2_score(y_train, y_pred_train)), "rmse": _rmse(y_train, y_pred_train)},
-        test_metrics={"r2": float(r2_score(y_test,  y_pred_test )), "rmse": _rmse(y_test,  y_pred_test )},
+        train_metrics={"r2": float(r2_score(y_train, y_pred_train)), "rmse": rmse(y_train, y_pred_train)},
+        test_metrics={"r2": float(r2_score(y_test, y_pred_test)), "rmse": rmse(y_test, y_pred_test)},
         feature_columns=X.columns.tolist() if hasattr(X, "columns") else [],
-        y_train=getattr(y_train, "to_numpy", lambda: y_train)(),
+        y_train=y_train.to_numpy() if hasattr(y_train, "to_numpy") else np.asarray(y_train),
         y_train_pred=y_pred_train,
-        y_test=getattr(y_test, "to_numpy", lambda: y_test)(),
+        y_test=y_test.to_numpy() if hasattr(y_test, "to_numpy") else np.asarray(y_test),
         y_test_pred=y_pred_test,
         selector=selector,
         selected_features=selected_columns,
     )
 
+# Run K-fold cross-validation (leakage-safe via a Pipeline that includes the selector).
+def cross_validate_linear(
+    X: pd.DataFrame,
+    y: pd.Series,
+    *,
+    cv_folds: int = 5,
+    selector=None,
+    random_state: int = 99,
+) -> dict:
+    steps = []
+    if selector is not None:
+        steps.append(("selector", selector))  # selector is fit inside each fold on fold-train only
+    steps.append(("lr", LinearRegression()))
+    pipe = Pipeline(steps)
 
-# -----------------------------
-# Prediction for "next season"
-# -----------------------------
+    cv = KFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
 
+    r2_scores = cross_val_score(pipe, X, y, cv=cv, scoring="r2")
+    mse_scores = cross_val_score(pipe, X, y, cv=cv, scoring="neg_mean_squared_error")
+    rmse_scores = np.sqrt(-mse_scores)
+
+    return {
+        "r2_mean": float(r2_scores.mean()),
+        "r2_std": float(r2_scores.std()),
+        "rmse_mean": float(rmse_scores.mean()),
+        "rmse_std": float(rmse_scores.std()),
+    }
+
+# Apply the same preprocessing/column alignment (and selector) to next-season data and predict scores.
 def align_and_predict_next(
     model: LinearRegression,
     train_X_cols: list[str],
@@ -315,38 +285,31 @@ def align_and_predict_next(
     categorical_feats: list[str],
     selector=None,
 ) -> pd.DataFrame:
-    """Apply training preprocessing to next season's data and predict scores."""
-    # Defensive copies
     next_df = next_df.copy()
     available_numeric = [c for c in numeric_feats if c in next_df.columns]
     available_categorical = [c for c in categorical_feats if c in next_df.columns]
 
-    # Build design; handle case with zero available predictors
     if not available_numeric and not available_categorical:
-        # Create an all-zeros frame with the training columns
         X_next_aligned = pd.DataFrame(0, index=next_df.index, columns=train_X_cols)
     else:
         X_next = pd.get_dummies(
             next_df[available_numeric + available_categorical],
             columns=available_categorical, drop_first=True, dtype=int
         )
-        # Align to training columns (pre-selection)
         X_next_aligned = X_next.reindex(columns=train_X_cols, fill_value=0)
 
-    # Apply selector if present (and fitted)
     if selector is not None:
         try:
             X_next_aligned = selector.transform(X_next_aligned)
         except Exception as e:
-            # Fall back to no selection if something odd happens, but don't return None
             print(f"⚠️ Feature selector transform failed on next data: {e}. Skipping selector.")
-            # keep X_next_aligned as-is
 
-    # Predict
     try:
         preds = model.predict(X_next_aligned)
     except Exception as e:
-        raise RuntimeError(f"Prediction failed. X_next_aligned shape={getattr(X_next_aligned, 'shape', None)}") from e
+        raise RuntimeError(
+            f"Prediction failed. X_next_aligned shape={getattr(X_next_aligned, 'shape', None)}"
+        ) from e
 
     out = next_df.copy()
     out["predicted_survivalscore"] = preds

@@ -22,6 +22,9 @@ from sole_survivor_utils_2 import (
     fit_evaluate_linear_regression,
     align_and_predict_next,
 
+    # Cross-validation
+    cross_validate_linear,
+
     # make_feature_selector,  # (optional) uncomment if you want selection here
 )
 
@@ -155,6 +158,12 @@ def train_and_plot(
         categorical_feats=categorical_feats
     )
 
+    # ---- Cross-validation (leakage-safe via Pipeline in utils) ----
+    cv = cross_validate_linear(X, y, cv_folds=5, selector=selector, random_state=random_state)
+    print(f"CV  R^2:  {cv['r2_mean']:.3f} ± {cv['r2_std']:.3f}")
+    print(f"CV  RMSE: {cv['rmse_mean']:.3f} ± {cv['rmse_std']:.3f}")
+    # ---------------------------------------------------------------
+
     # Train/eval the model (and feature selector if provided)
     artifacts = fit_evaluate_linear_regression(
         X, y, test_size=test_size, random_state=random_state, selector=selector
@@ -235,7 +244,7 @@ def main() -> None:
     # Orchestrate the full workflow:
     #   1) Load & clean data; confirm target
     #   2) Run quick diagnostics (correlations/heatmap)
-    #   3) Train/test the linear regression (optional selection)
+    #   3) Train/test the linear regression (+ CV; optional selection)
     #   4) Predict next-season scores and save rankings
     df_past, df_next, target = load_and_prepare(PAST_CSV, NEXT_CSV)
 
@@ -246,7 +255,7 @@ def main() -> None:
     # selector = make_feature_selector(method="lasso_sfmodel")
     selector = None
 
-    # Train/evaluate and produce plots
+    # Train/evaluate (with CV) and produce plots
     artifacts, numeric_feats, categorical_feats = train_and_plot(
         df_past, target, numeric_feats, categorical_feats,
         test_size=0.25, random_state=99, selector=selector
