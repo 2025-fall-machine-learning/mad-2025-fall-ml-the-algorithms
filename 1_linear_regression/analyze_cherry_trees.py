@@ -208,6 +208,14 @@ def multiple_linear_regression(cherry_tree_df, create_testing_set, one_hot_encod
 	rmse = np.sqrt(mse)
 	print(f"The Training RMSE: {rmse}")
 
+	scores = ms.cross_val_score(model, predictors, response, scoring="r2")
+	print("CV r^2 Scores:")
+	print(scores)
+
+	scores = ms.cross_val_score(model, predictors, response, scoring="neg_root_mean_squared_error")
+	print("CV RMSE Scores:")
+	print(scores)
+
 	# Plot the data and the best fit line.
 	plt.scatter(training_predictors[:,0], training_response, color='blue', label='Training Data')
 	plt.plot(training_predictors[:,0], prediction, color='red', label='Best Fit Line')
@@ -282,7 +290,7 @@ def main():
 	# simple_linear_regression(cherry_tree_df, True)
 	# multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
-	multiple_linear_regression(cherry_tree_df, True, False)
+	multiple_linear_regression(cherry_tree_df, False, False)
 	# multiple_linear_regression(cherry_tree_df, False, True)
 	# multiple_linear_regression(cherry_tree_df, True, True)
 
