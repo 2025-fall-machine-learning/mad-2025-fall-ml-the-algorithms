@@ -8,13 +8,13 @@ Sole Survivor - Ridge Regression (Simple or Multiple)
 - Predicts next season, prints top 3, saves CSV
 """
 
-import numpy as np
+import numpy as np 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import KFold, RepeatedKFold, cross_val_score, train_test_split
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline 
+from sklearn.preprocessing import StandardScaler 
 from sklearn.linear_model import Ridge
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 

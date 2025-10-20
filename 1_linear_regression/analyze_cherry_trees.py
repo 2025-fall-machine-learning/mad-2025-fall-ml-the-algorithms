@@ -1,16 +1,16 @@
-import numpy as np
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-import os
+import numpy as np # For numerical operations
+import pandas as pd # For data manipulation
+from sklearn.linear_model import LinearRegression # For linear regression
+from sklearn.model_selection import train_test_split # For splitting data
+import matplotlib.pyplot as plt # For plotting
+import os # For file path handling
 
 
 def print_1d_data_summary(data_1d, label=None):
     arr = np.array(data_1d)
     # Only flatten if it's a 2D array with one column
     if arr.ndim == 2 and arr.shape[1] == 1:
-        arr = arr.flatten()
+        arr = arr.flatten() 
     first_five = ", ".join(f"{x:7.3f}" for x in arr[:5])
     last_five = ", ".join(f"{x:7.3f}" for x in arr[-5:])
     print(f"{label + ': ' if label else ''}[{first_five}, ..., {last_five}]")
@@ -19,7 +19,7 @@ def print_1d_data_summary(data_1d, label=None):
 def plot_regression(x, y_true, y_pred, x_label, y_label, title, color):
 
     # Sort by x for a cleaner plot
-    sort_idx = np.argsort(x)
+    sort_idx = np.argsort(x)  
     x_sorted = np.array(x)[sort_idx]
     y_true_sorted = np.array(y_true)[sort_idx]
     y_pred_sorted = np.array(y_pred)[sort_idx]
@@ -37,7 +37,7 @@ def plot_regression(x, y_true, y_pred, x_label, y_label, title, color):
     plt.show()
 
 
-def process_dataset(X, y, model, set_name, labels, color):
+def process_dataset(X, y, model, set_name, labels, color): 
     
     #Handles prediction, printing summaries, and plotting for one dataset split.
     # Predict using the model
