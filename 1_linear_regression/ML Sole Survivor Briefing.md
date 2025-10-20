@@ -36,10 +36,39 @@ Brief overview of the project:
 
     ![Linearity Check - Heatmap](linearity_check_heatmap.png)
 
-### 2.2 Interpretation of Past Scores
+### 2.2 Linear Regression Performance on Training and Testing Data
+- RMSE and r-squared values for multiple linear regression model, split into training and testing data.
+- Based on the linearity check, the model was trained on a reduced number of predictors. 
+    - Specifically, traits with extremely low or extremely high Pearson correlation to the survival score were excluded to enhance the model's stability and to reduce overfitting.
+    - Training Set Performance
+        - **RMSE: 7.3465**
+        - **R-Squared: 0.8167**
+            - On average, the model's predictions deviate from actual survival scores by 7.35 points.
+            - An r-squared of 0.82 indicates that the model explains 82% of the variance in the training data.
+                - This suggests that the model has meaningful predictive power.
+
+    ![Training Scores - Multiple Linear Regression](linear_regression_training_plot.png)
+
+    - Testing Set Performance
+        - **RMSE: 9.3071**
+        - **R-Squared: 0.7896**
+            - The prediction error slightly increased on the testing data, with an average deviation of 9.31 points.
+            - The r-squared value dropped modestly, but it remains relatively high.
+                - This points to the model having a good ability to generalize the scores well.
+                - Additionally, the scores given by the experts retain their predictive relevance.
+
+    ![Testing Scores - Multiple Linear Regression](linear_regression_testing_plot.png)
+
+### 2.3 Interpretation of Past Scores
 - The survival experts, overall, scored the previous contestants consistently, but not with predictive accuracy.
-- For the variables that are conceptually opposing or associated (i.e. "RiskTaking and "SurvivalSkills") their approximated scores likely denote a scoring bias.
-- Statistically, the estimated scores do not align well with actual survival outcomes.
+- The initial statistical analysis revealed weak alignment between estimated traits and the actual survival outcomes.
+    - With the low r-squared, non-significant p-values, and minimal coefficients, they demonstrated that the raw expert scores would likely not be reliable predictors.
+- Nevertheless, the regression model showed strong performance after reducing the predictor set, based on the linearity check.
+    - The training and testing r-squared values (0.8167 and 0.7896) indicate that the refined trait subset captures meaningful variance in the survival scores.
+    - Moreover, while the full set of expert scores were noisy, the filtered subset retained its predictive relevance.
+- The Conceptually overlapping or opposing traits (e.g., “RiskTaking” and “SurvivalSkills”) may have reflected scoring bias or redundancy.
+    - These relationships could have diluted the model’s accuracy prior to feature selection.
+- Altogether, the experts' scoring system contains signal, but could be prone to overfitting and instability without careful feature selection.
 
 ## 3. Predictive Modeling
 
@@ -48,7 +77,7 @@ Brief overview of the project:
 - Predictors: Expert-assigned trait scores (SurvivalSkills, PhysicalFitness, Stubbornness, Adaptability, MentalToughness)
 - Target: Actual survival score.
 
-### 3.2 Prediction Results
+### 3.2 Prediction Results Using Reduced Predictors
 - Predicted survival scores for new contestants.
     - Table: Top 3 participants and their corresponding predicted survival scores.
 
@@ -58,13 +87,16 @@ Brief overview of the project:
         | Byron      | 70.67                    |
         | Jonah      | 61.25                    |
 
-- RMSE and r-squared results from predicting survival score, using multiple linear regression. 
-    - **Root Mean Squared Error (RMSE): 25.53**
-        - This RMSE signifies the model's predictions deviate from actual survial scores by 25 points, on average.
-        - Given the survival scores range from about 0 to 100, this is a high error, pointing to poor precision.
-    - **R-Squared Value: -1.4102**
-        - Since the r-squared value is negative, it means the model performed worse than simply predicting the mean of the overall survival scores.
-        - This suggests that the expert-assigned trait scores do not capture meaningful patterns in survival outcomes.
+- This scatter plot illustrates the relationship between the reduced set of predictors and the model's predicted survival scores for new participants.
+    - Directionality
+        - The red best-fit line has a relatively upward slope, depicting how higher trait values are associated with higher predicted survival scores.
+    - Variance
+        - The graph has a good amount of variance which allows the graph to be dynamic and respond to new input while not being too rigid or underfitted.
+    - Bias
+        - There does not appear to be any obvious skew, implying low bias in the model's predictions.
+    - Predictive Stability
+        - The consistent alignment of points along the line suggests that the model generalizes its learned relationships well.
+        - Additionally, this demonstrates that the model is not being overfitted to the training data, denoting its predictive relevance.
 
     ![Multiple Linear Regression Plot](multiple_linear_regression_plot.png)
 
@@ -74,7 +106,7 @@ Brief overview of the project:
     - **Predicted Mean: 49.14**
         - As the two means are very close, the model likely represents the central tendency of the survival scores reasonably well.
         - The distribution shape has concrete signs of compression toward the mean, a possible result of a lack of strong data.
-            - Main sign includes: The predicted scores are less frequent at the extreme compared ot the past scores.
+            - Main sign includes: The predicted scores are less frequent at the extreme compared to the past scores.
         - The model is likely less sensitive to individual differences, since the predicted scores cluster more tightly than the past scores.
             - This could be linked to the expert scores having additional trait redundancy.
 
@@ -82,20 +114,24 @@ Brief overview of the project:
 
 ### 3.3 Interpretation
 - The survival experts captured the average survival profile but missed individual nuance, as shown by compressed prediction spread.
-- The RMSE and the r-squared value denote that the expert trait scores lacked predictived depth.
-- While the experts were consistent in their scoring, it did not translate to any meaningful relationships between the traits and the actual survival scores.
+- The scatter plot of predicted scores revealed low bias and moderate variance.
+    - Thus, the model responds dynamically to input changes without skewing toward any particular region. 
+- The experts' scoring system reflected a stable but shallow predictive framework.
+    - This makes it adequate for estimating average performance, but insufficient for capturing individual nuance. 
 
 ## 4. Conclusion
 - In summary, there is a clear disconnect between the survival experts' trait scoring and actual survival outcomes.
-    - The experts' ratings were consistent, but they lacked any subtantial predictive ability.
-- This is evident by the negative r-squared value and the high RMSE which implies that the features did not align with actual participant performance.
-- Additionally, the distribution of predicted scores was compressed, suggesting that the experts' ratings were too conservative of the contestants' behaviors. 
-- The lack of correlation between key traits and survival scores, lastly, indicate conceptual redundancy or misaligned emphasis, invalidating the scoring framework.
+    - The experts' ratings were consistent, but they lacked substantial predictive ability based on the initial statistical diagnostics.
+- The distribution of predicted scores, additionally, was compressed, suggesting that the experts' ratings were too conservative and lacked sensitivity of the contestants' behaviors. 
+- Overall, the expert scoring framework contains **latent predictive value**, but its cautious structure and trait redundancy limited its effectiveness.
+    - Without refinement, the system risks underrepresenting behavioral nuance and misaligning with real-world performance. 
 
 ## 5. Recommendation
-- To improve the validity of future survival scoring frameworks, survival experts should:
-    - Ensure they keep variables independent of each other by avoiding scoring traits that are conceptually or statistically redundant. 
-        - This will reduce multicollinearity and deepen the interpretability of predictive models.
+- Reduce Trait Redundancy
+    - To improve the validity of future survival scoring frameworks, survival experts should:
+        - Ensure they keep variables independent of each other by avoiding scoring traits that are conceptually or statistically redundant. 
+            - This will reduce multicollinearity and deepen the interpretability of predictive models.
+- Expand the Scoring Range
     - Include a broader scoring range where they can be more liberal about assigning greater point values to participant's traits, where relevant.
         - This will help differentiate contestants who are likely to perform higher.
 - Together, these adjustments will aid in enhancing the predictability of the model while identifying the individual strengths of participants more accurately. 

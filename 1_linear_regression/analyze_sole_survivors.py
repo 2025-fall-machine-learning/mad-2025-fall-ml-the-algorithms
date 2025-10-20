@@ -35,10 +35,16 @@ def perform_linear_regression_prediction(model, predictors):
     return prediction
 
 # Function to create modified dataframe for linearity check and regression
-def create_modified_df(df, model, simple_or_multiple, make_predictions):
-    # Multiple linear regression without one-hot encoding
+def create_modified_df(df, model, simple_or_multiple, make_predictions, reduced_model):
+
+    if not make_predictions:
+        reduced_columns = ['Name', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork', 'SurvivalScore']
+    else:
+        reduced_columns = ['Name', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork']
+
+    # Multiple linear regression with predictions
     if make_predictions:
-        predictors = df.drop(columns=['Name','Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork']).values
+        predictors = df.drop(columns=reduced_columns if reduced_model else 'Name').values
         prediction = perform_linear_regression_prediction(model, predictors)
         modified_survivors_df = df.copy()
         modified_survivors_df['PredictedSurvivalScore'] = prediction
@@ -49,11 +55,8 @@ def create_modified_df(df, model, simple_or_multiple, make_predictions):
         response_name = 'PredictedSurvivalScore'
     else:
         if simple_or_multiple == 'multiple':
-            predictors = df.drop(columns=['Name', 'SurvivalScore']).values # 'Name', 'SurvivalScore'
-            modified_survivors_df = df.drop(columns=['Name', 'SurvivalScore']) # 'Name', 'SurvivalScore'
-            # 'Name', 'SurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork'
-            # predictors = df[['Leadership', 'MentalToughness', 'SurvivalSkills', 'Risktaking', 'Resourcefulness', 'Adaptability', 'Physicalfitness', 'Teamwork', 'Stubbornness']].values
-            # modified_survivors_df = pd.DataFrame(predictors, columns=['Leadership', 'MentalToughness', 'SurvivalSkills', 'Risktaking', 'Resourcefulness', 'Adaptability', 'Physicalfitness', 'Teamwork', 'Stubbornness'])
+            predictors = df.drop(columns=reduced_columns if reduced_model else ['Name', 'SurvivalScore']).values # 'Name', 'SurvivalScore'
+            modified_survivors_df = df.drop(columns=reduced_columns if reduced_model else ['Name', 'SurvivalScore']) # 'Name', 'SurvivalScore'
             response = df['SurvivalScore'].values
             response_name = 'SurvivalScore'
         # Simple linear regression
@@ -67,7 +70,7 @@ def create_modified_df(df, model, simple_or_multiple, make_predictions):
     return modified_survivors_df, response_name, predictors, response, prediction if make_predictions else None
 
 # Main function to perform linear regression, simple or multiple
-def linear_regression(simple_or_multiple, sole_df, create_testing_set):
+def linear_regression(simple_or_multiple, sole_df, create_testing_set, reduced_model):
     # Set training and testing variable values
     if create_testing_set:
         training_df, testing_df = ms.train_test_split(sole_df, test_size=0.25)
@@ -77,12 +80,12 @@ def linear_regression(simple_or_multiple, sole_df, create_testing_set):
     # Create modified dataframes for training and testing sets
     if create_testing_set: 
         training_modified_survivors_df, response_name, training_predictors, training_response, training_prediction \
-        = create_modified_df(training_df, None, simple_or_multiple, make_predictions=False)
+        = create_modified_df(training_df, None, simple_or_multiple, make_predictions=False, reduced_model=reduced_model)
         testing_modified_survivors_df, response_name, testing_predictors, testing_response, training_prediction \
-        = create_modified_df(testing_df, None, simple_or_multiple, make_predictions=False)
+        = create_modified_df(testing_df, None, simple_or_multiple, make_predictions=False, reduced_model=reduced_model)
     else:
         training_modified_survivors_df, response_name, training_predictors, training_response, training_prediction \
-        = create_modified_df(training_df, None, simple_or_multiple, make_predictions=False)
+        = create_modified_df(training_df, None, simple_or_multiple, make_predictions=False, reduced_model=reduced_model)
         testing_modified_survivors_df = None
         testing_predictors = None
         testing_response = None
@@ -120,11 +123,20 @@ def r_squared_value(model, predictors, response):
     r_squared = model.score(predictors, response)
     print(f'r-squared value: {r_squared:.4f}')
 
+# Function to perform cross-validated r-squared calculation
 def cross_validated_r_squared(model, predictors, response):
     scores = ms.cross_val_score(model, predictors, response, scoring='r2')
     print("CV r-squared scores:", scores)
 
-    # repeated k-fold cross-validation
+# Function to perform k-fold cross-validation and print R^2 statistics
+def k_fold_cross_validation(predictors, response, k=5):
+    model = lm.LinearRegression()
+    cv = ms.RepeatedKFold(n_splits=k, n_repeats=10, random_state=42)
+    r2_scores = ms.cross_val_score(model, predictors, response, cv=cv, scoring='r2')
+    print(f"Mean R^2: {r2_scores.mean():.4f}")
+    print(f"Std Dev of R^2: {r2_scores.std():.4f}")
+    print(f"Min R^2: {r2_scores.min():.4f}")
+    print(f"Max R^2: {r2_scores.max():.4f}")
 
 # Function to calculate and print the root mean squared error
 def root_mean_squared_error(prediction, response):
@@ -171,11 +183,14 @@ def printing_values(simple_or_multiple, test_set_created, prediction, response, 
     print_data_summary(response)
 
 # Function to plot the values of the predictors, prediction, and response
-def plotting_values(simple_or_multiple, test_set_created, prediction, response, predictors, model):
-    # Calculate and print root mean squared error
-    root_mean_squared_error(prediction, response)
-    # Calculate and print r-squared value
-    r_squared_value(model, predictors, response)
+def plotting_values(make_predictions, simple_or_multiple, test_set_created, prediction, response, predictors, model):
+    if not make_predictions:
+        print(f'Plotting the {"testing" if test_set_created else "training"} data results:')
+        # Calculate and print root mean squared error
+        root_mean_squared_error(prediction, response)
+        # Calculate and print r-squared value
+        r_squared_value(model, predictors, response)
+
     # Create scatter plot with line of best fit
     color = 'green' if test_set_created else 'blue'
     label = 'Testing Data' if test_set_created else 'Training Data'
@@ -192,6 +207,10 @@ def plotting_values(simple_or_multiple, test_set_created, prediction, response, 
     title = f'Linear Regression: {xlabel} vs {ylabel}' # ({label})
     plt.title(title)
     plt.legend()
+    # if test_set_created:
+        # plt.savefig('linear_regression_testing_plot.png')
+    # else:
+        # plt.savefig('linear_regression_training_plot.png')
     # plt.savefig('multiple_linear_regression_plot.png')
     plt.show()
 
@@ -250,6 +269,18 @@ def input_prompts():
 
     print(f'You have selected to {"make" if make_predictions else "not make"} predictions.')
 
+    print('Would you like to use a reduced set of predictors for making predictions? (yes or no)')
+
+    reduced_predictors_input = input().strip().lower()
+    if reduced_predictors_input not in ['yes', 'no']:
+        print('Invalid input. Defaulting to no reduced predictors.')
+        use_reduced_predictors = False
+    else:
+        use_reduced_predictors = reduced_predictors_input == 'yes'
+
+    print(f'You have selected to {"use" if use_reduced_predictors else "not use"} a reduced set of predictors.')
+    print('This will be set to False if simple linear regression is selected.')
+
     if not make_predictions:
 
         print('Please input the type of linear regression you would like to perform: simple or multiple?')
@@ -271,10 +302,13 @@ def input_prompts():
 
         print(f'You have selected to {"create" if use_testing_set else "not create"} a testing set.')
 
+    simple_or_multiple = 'multiple' if make_predictions else simple_or_multiple
+    reduced_predictors_input = False if simple_or_multiple == 'simple' else use_reduced_predictors
+
     if not make_predictions:
-        return simple_or_multiple, use_testing_set, False
+        return reduced_predictors_input, simple_or_multiple, use_testing_set, False
     else:
-        return 'multiple', False, True
+        return reduced_predictors_input, 'multiple', False, True
 
 def main():
 
@@ -283,19 +317,45 @@ def main():
     sole_next_df = pd.read_csv('sole_survivor_next.csv')
 
     # Get user inputs for the type of regression and options
-    simple_or_multiple, use_testing_set, make_predictions = input_prompts()
+    reduced_model, simple_or_multiple, use_testing_set, make_predictions = input_prompts()
 
-    # Perform linear regression
-    training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
-        testing_prediction, testing_response, testing_predictors, model \
-            = linear_regression(simple_or_multiple, sole_past_df, use_testing_set)
+    # Perform linear regression based on user inputs
+    if make_predictions and reduced_model:
+        selected_columns = ['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness']
+        reduced_past_predictors_df = sole_past_df[selected_columns]
+        reduced_past_predictors = reduced_past_predictors_df.values
+        reduced_model = create_linear_regression_model(reduced_past_predictors, sole_past_df['SurvivalScore'].values)
+    elif not make_predictions and reduced_model:
+        training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
+            testing_prediction, testing_response, testing_predictors, model \
+                = linear_regression(simple_or_multiple, sole_past_df, use_testing_set, reduced_model=True)
+    elif make_predictions and not reduced_model:
+        training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
+            testing_prediction, testing_response, testing_predictors, model \
+                = linear_regression(simple_or_multiple, sole_past_df, use_testing_set, reduced_model=False)
+    else:
+        training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
+            testing_prediction, testing_response, testing_predictors, model \
+                = linear_regression(simple_or_multiple, sole_past_df, use_testing_set, reduced_model=False)
+
+    # Create modified dataframe for predictions if needed
+    if make_predictions and reduced_model:
+        modified_sole_next_df, response_name, next_predictors, predicted_score, next_prediction \
+            = create_modified_df(sole_next_df, reduced_model, simple_or_multiple, make_predictions=True, reduced_model=True)
+    elif make_predictions and not reduced_model:
+        modified_sole_next_df, response_name, next_predictors, predicted_score, next_prediction \
+            = create_modified_df(sole_next_df, model, simple_or_multiple, make_predictions=True, reduced_model=False)
     
     # Sort values for better plotting
-    sorted_training_prediction, sorted_training_response, sorted_training_predictors = \
-        sort_values(training_prediction, training_response, training_predictors)
-    if use_testing_set:
-        sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors = \
-            sort_values(testing_prediction, testing_response, testing_predictors)
+    if make_predictions:
+        sorted_next_prediction, sorted_next_response, sorted_next_predictors = \
+            sort_values(next_prediction, predicted_score, next_predictors)
+    else: 
+        sorted_training_prediction, sorted_training_response, sorted_training_predictors = \
+            sort_values(training_prediction, training_response, training_predictors)
+        if use_testing_set:
+            sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors = \
+                sort_values(testing_prediction, testing_response, testing_predictors)
 
     # Print and plot results
     if not make_predictions:
@@ -304,47 +364,40 @@ def main():
             printing_values(simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors)
             # r_squared_value(model, sorted_training_predictors, sorted_training_response)
             linearity_check(training_modified_survivor_df, simple_or_multiple, response_name, training_response)
-            plotting_values(simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
+            plotting_values(False,simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
             # r_squared_value(model, sorted_testing_predictors, sorted_testing_response)
             linearity_check(testing_modified_survivor_df, simple_or_multiple, response_name, testing_response)
-            plotting_values(simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors, model)
+            plotting_values(False, simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors, model)
         else:
             # Run for both simple and multiple linear regression without a testing set
             printing_values(simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors)
             # r_squared_value(model, sorted_training_predictors, sorted_training_response)
             linearity_check(training_modified_survivor_df, simple_or_multiple, response_name, training_response)
-            plotting_values(simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
+            plotting_values(False, simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
             # Statistical summary and z-score distribution only for multiple linear regression
             if simple_or_multiple == 'multiple':
                 statistical_summary(sole_past_df, sorted_training_predictors)
                 plot_zscore_distribution(sole_past_df, 'SurvivalScore')
     else:
         # Make predictions on the next set of survivors
-        # Drop unnecessary columns and create model
-        # reduced_sorted_past_predictors = np.delete(sorted_training_predictors, [0, 3, 4, 7], axis=1)
-        selected_columns = ['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness']
-        reduced_past_predictors_df = sole_past_df[selected_columns]
-        reduced_past_predictors = reduced_past_predictors_df.values
-        reduced_model = create_linear_regression_model(reduced_past_predictors, sole_past_df['SurvivalScore'].values)
         # Print predicted top three survivors
         print('The predicted survival scores for the next set of survivors are:')
-        modified_sole_next_df, response_name, next_predictors, predicted_score, next_prediction \
-            = create_modified_df(sole_next_df, reduced_model, simple_or_multiple, make_predictions=True)
         print(modified_sole_next_df[['Name', 'PredictedSurvivalScore']].head(3).to_string(index=False))
         # Create heatmap for linearity check using unsorted scores
-        correlation_df = modified_sole_next_df.drop(columns=['Name', 'PredictedSurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork'])
+        if reduced_model:
+            correlation_df = modified_sole_next_df.drop(columns=['Name', 'PredictedSurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork'])
+        else:
+            correlation_df = modified_sole_next_df.drop(columns=['Name', 'PredictedSurvivalScore'])
         linearity_check(correlation_df, 'multiple', response_name, predicted_score)
-        # Sort values for better plotting
-        sorted_next_prediction, sorted_next_response, sorted_next_predictors = sort_values(next_prediction, predicted_score, next_predictors)
-    # R-square value dropped
+
+        # k_fold_cross_validation(next_predictors, predicted_score, k=5)
+
         # Create reduced dataframe for plotting
-        next_predictors_df = pd.DataFrame(sorted_next_predictors, columns=['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness'])
-    # R-squared value dropped again
-        # Print and plot results
-
-        cross_validated_r_squared(reduced_model, next_predictors_df.values, sorted_next_response)
-
-        plotting_values(simple_or_multiple, False, sorted_next_prediction, sorted_next_response, next_predictors_df.values, reduced_model)
+        if reduced_model:
+            next_predictors_df = pd.DataFrame(sorted_next_predictors, columns=['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness'])
+        else:
+            next_predictors_df = pd.DataFrame(sorted_next_predictors, columns=modified_sole_next_df.drop(columns=['Name','PredictedSurvivalScore']).columns)
+        plotting_values(True, simple_or_multiple, False, sorted_next_prediction, sorted_next_response, next_predictors_df.values, reduced_model)
         # Plot distribution of past and predicted survival scores
         past_score = sole_past_df['SurvivalScore'].round(2)
         plot_survival_score_distribution(past_score, predicted_score)
