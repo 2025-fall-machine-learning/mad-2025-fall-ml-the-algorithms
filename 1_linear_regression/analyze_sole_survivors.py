@@ -120,6 +120,12 @@ def r_squared_value(model, predictors, response):
     r_squared = model.score(predictors, response)
     print(f'r-squared value: {r_squared:.4f}')
 
+def cross_validated_r_squared(model, predictors, response):
+    scores = ms.cross_val_score(model, predictors, response, scoring='r2')
+    print("CV r-squared scores:", scores)
+
+    # repeated k-fold cross-validation
+
 # Function to calculate and print the root mean squared error
 def root_mean_squared_error(prediction, response):
     mse = metrics.mean_squared_error(response, prediction)
@@ -315,8 +321,11 @@ def main():
     else:
         # Make predictions on the next set of survivors
         # Drop unnecessary columns and create model
-        reduced_sorted_past_predictors = np.delete(sorted_training_predictors, [0, 3, 4, 7], axis=1)
-        reduced_model = create_linear_regression_model(reduced_sorted_past_predictors, sorted_training_response)
+        # reduced_sorted_past_predictors = np.delete(sorted_training_predictors, [0, 3, 4, 7], axis=1)
+        selected_columns = ['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness']
+        reduced_past_predictors_df = sole_past_df[selected_columns]
+        reduced_past_predictors = reduced_past_predictors_df.values
+        reduced_model = create_linear_regression_model(reduced_past_predictors, sole_past_df['SurvivalScore'].values)
         # Print predicted top three survivors
         print('The predicted survival scores for the next set of survivors are:')
         modified_sole_next_df, response_name, next_predictors, predicted_score, next_prediction \
@@ -327,9 +336,14 @@ def main():
         linearity_check(correlation_df, 'multiple', response_name, predicted_score)
         # Sort values for better plotting
         sorted_next_prediction, sorted_next_response, sorted_next_predictors = sort_values(next_prediction, predicted_score, next_predictors)
+    # R-square value dropped
         # Create reduced dataframe for plotting
         next_predictors_df = pd.DataFrame(sorted_next_predictors, columns=['MentalToughness', 'SurvivalSkills', 'Adaptability', 'PhysicalFitness', 'Stubbornness'])
+    # R-squared value dropped again
         # Print and plot results
+
+        cross_validated_r_squared(reduced_model, next_predictors_df.values, sorted_next_response)
+
         plotting_values(simple_or_multiple, False, sorted_next_prediction, sorted_next_response, next_predictors_df.values, reduced_model)
         # Plot distribution of past and predicted survival scores
         past_score = sole_past_df['SurvivalScore'].round(2)
