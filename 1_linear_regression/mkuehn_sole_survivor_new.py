@@ -144,6 +144,28 @@ def main():
     sole_survivor_next_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/1_linear_regression/sole_survivor_next.csv", skipinitialspace=True)
     sole_survivor_next_df["Name"] = sole_survivor_next_df["Name"].astype(str).str.strip()
     
+    # vvv In-class follow-along debug section vvv
+    # print("Start of debug section:")
+    # verification_model = lm.LinearRegression()
+    # verification_model.fit(sole_survivor_past_df.iloc[:, 1:-1], sole_survivor_past_df.iloc[:, -1])
+    # verification_prediction = verification_model.predict(sole_survivor_past_df.iloc[:, 1:])
+    # r_past = verification_model.score(sole_survivor_past_df.iloc[:, 1:-1], sole_survivor_past_df.iloc[:, -1])
+    # print(f'R-squared value for past verification model: {r_past}')
+    
+    # r_next = verification_model.score(sole_survivor_next_df.iloc[:, 1:-1], verification_prediction)
+    # print(f'R-squared value for next verification model: {r_next}')
+    
+    # (verification_training, verification_testing) = ms.train_test_split(sole_survivor_past_df, test_size=0.25, random_state=42)
+    # verification_model_2 = lm.LinearRegression()
+    # verification_model_2.fit(verification_training.iloc[:, 1:-1], verification_training.iloc[:, -1])
+    # verification_prediction_training = verification_model_2.predict(verification_training.iloc[:, 1:-1])
+    # verification_prediction_testing = verification_model_2.predict(verification_testing.iloc[:, 1:-1])
+    # r_past_training = verification_model_2.score(verification_training.iloc[:, 1:-1], verification_training.iloc[:, -1])
+    # r_past_training_with_predictions = verification_model_2.score(verification_training.iloc[:, 1:-1], verification_prediction_training)
+    
+    # plotting_values(True simple_or_mulitple, False)
+    # ^^^ End of debug section ^^^
+    
     # top3survivors(sole_survivor_past_df)
     
     # make_heatmap(sole_survivor_past_df)
