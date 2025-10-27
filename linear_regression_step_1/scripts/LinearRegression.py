@@ -58,9 +58,8 @@ class LinearRegression:
                 # It stopped improving -> bracket between prev_slope_bound/expand_factor and
                 # curr_slope_bound.
                 if curr_rss_bound >= prev_rss_bound:
-                    low = prev_slope_bound * expand_factor
-                    high = curr_slope_bound
-                    return (low, high)
+                    low, high = prev_slope_bound, curr_slope_bound # <- These two lines were edited
+                    return (min(low, high), max(low, high))        # <- The minimum and maximum lows and highs needed to be computed
                 prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
             # Reached the maximum iterations without stopping. Return a wide bracket.
             return (starting_low_slope, prev_slope_bound)
@@ -73,9 +72,8 @@ class LinearRegression:
                 curr_slope_bound = prev_slope_bound / expand_factor
                 curr_rss_bound = self._rss_for_slope(x_values, y_values, mean_x, mean_y, curr_slope_bound)
                 if curr_rss_bound >= prev_rss_bound:
-                    low = curr_slope_bound
-                    high = prev_slope_bound / expand_factor
-                    return (low, high)
+                    low, high = curr_slope_bound, prev_slope_bound # <- These two lines were edited
+                    return (min(low, high), max(low, high))        # <- The minimum and maximum lows and highs needed to be computed
                 prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
             return (prev_slope_bound, starting_high_slope)
 
@@ -87,7 +85,7 @@ class LinearRegression:
     def rss(self, x_values: Iterable[float], y_values: Iterable[float], slope: float, intercept: float) -> float:
         xa = np.asarray(x_values, dtype=float)
         ya = np.asarray(y_values, dtype=float)
-        actual_y = slope + (xa + intercept)
+        actual_y = slope * xa + intercept # <- previous calculation error fixed here
         res = ya - actual_y
         rss = (res ** 2).sum()
         return float(rss)
