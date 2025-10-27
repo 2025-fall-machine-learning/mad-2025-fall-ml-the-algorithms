@@ -23,6 +23,14 @@ def main():
         print(f"  train_rss={best['train_rss']:.2f}, test_rss={best['test_rss']:.2f}")
         print(f"  train_rmse={best['train_rmse']:.2f}, test_rmse={best['test_rmse']:.2f}")
         print(f"  train_r2={best['train_r2']:.4f}, test_r2={best['test_r2']:.4f}")
+        
+        # Predict prices for engine sizes 75, 85, ..., 165
+        print('\nPredicted prices using the learned linear model:')
+        m = best['m']
+        b = best['b']
+        for enginesize in range(75, 166, 10):
+            predicted_price = m * enginesize + b
+            print(f"  enginesize={enginesize:3d} -> price={predicted_price:.2f}")
     else:
         print('\nNo best model found.')
 

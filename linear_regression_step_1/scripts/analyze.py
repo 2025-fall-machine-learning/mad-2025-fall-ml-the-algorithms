@@ -51,7 +51,7 @@ if _ASSISTANT_HEADLESS_FLAG in sys.argv:
 HEADLESS_MODE = HEADLESS or assistant_headless
 
 # Change the TRIAL_DELAY value to slow or speed up the animated iterations. Try TRIAL_DELAY = 0.03.
-TRIAL_DELAY = 0.000003 if not HEADLESS_MODE else 0.0
+TRIAL_DELAY = 0.03 if not HEADLESS_MODE else 0.0
 
 def run_analysis(data_path, x_col, y_col, seed=42, train_frac=0.8,
                  title=None, x_label=None, y_label=None, headless=None):

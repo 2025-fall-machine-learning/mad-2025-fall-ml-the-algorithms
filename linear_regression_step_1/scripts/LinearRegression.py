@@ -17,16 +17,22 @@ class LinearRegression:
 
     # y = mx + b => b = y - mx    vvv x must come before y vvv
     def _intercept_for_slope(self, x: float, y: float, m: float) -> float:
-        return y - m * x
-    print(f'{_intercept_for_slope}')
+        b = y - m * x
+        # print(f"intercept 1: y={y}, x={x}, m={m} -> b={b}")
+        return b
+    #     return y - m * x
+    # print(f'{_intercept_for_slope}')
 
 
     # Compute the RSS for a given slope (used in bracketing).
     def _rss_for_slope(self, x_values: np.ndarray, y_values: np.ndarray, mean_x: float, mean_y: float, m: float) -> float:
         b = self._intercept_for_slope(mean_x, mean_y, m)
+        # print(f"rss for slope: m={m}, b={b}, mean_x={mean_x}, mean_y={mean_y}")
         pred = m * x_values + b
         residuals = y_values - pred
-        rss = (residuals ** 2).sum()
+        # print(f"pred: {pred}, residuals: {residuals}, y_values: {y_values}")
+        rss = (residuals ** 2).sum() # <-- index number removed, otherwise it was trying to access a single element
+        print(f"rss_for_slope: rss={rss}")
         return float(rss)
 
 
@@ -46,6 +52,7 @@ class LinearRegression:
         try:
             rss_low = self._rss_for_slope(x_values, y_values, mean_x, mean_y, starting_low_slope)
             rss_high = self._rss_for_slope(x_values, y_values, mean_x, mean_y, starting_high_slope)
+            print(f"_find_initial_slopes: rss_low={rss_low}, rss_high={rss_high}")
         except Exception:
             return None
 
@@ -53,6 +60,7 @@ class LinearRegression:
             prev_slope_bound = starting_high_slope
             prev_rss_bound = rss_high
             for find_bracket_counter in range(max_iters):
+                print(f"expand factor: {expand_factor}, iteration: {find_bracket_counter}")
                 curr_slope_bound = prev_slope_bound * expand_factor
                 curr_rss_bound = self._rss_for_slope(x_values, y_values, mean_x, mean_y, curr_slope_bound)
                 # It stopped improving -> bracket between prev_slope_bound/expand_factor and
@@ -163,9 +171,9 @@ class LinearRegression:
                     yield (m, b, rss, epoch_idx)
                     self.trials_by_epoch[epoch_idx].append((m, b, rss))
                     # Update the best-so-far.
-                    if rss > self.best[2]:
+                    if rss < self.best[2]: # <-- fixed comparison to use index 2 for rss, had to be switched to <
                         self.best = (m, b, rss)
-                    if rss > best_local_tuple[2]:
+                    if rss < best_local_tuple[2]: # <-- fixed comparison to use index 2 for rss, had to be switched to <
                         best_local_tuple = (m, b, rss)
 
                 epoch_config['best_local'] = best_local_tuple

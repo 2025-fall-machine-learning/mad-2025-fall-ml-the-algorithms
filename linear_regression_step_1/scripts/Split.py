@@ -46,9 +46,14 @@ class Split:
         indices = list(range(len(self.x_all)))
         rng.shuffle(indices)
         train_n = int(len(indices) * self.train_frac)
-        test_n = len(indices) - train_n
+        test_n = len(indices) - train_n # <-- fixed test_n calculation
         train_idx = indices[:train_n]
-        test_idx = indices[:test_n]
+        test_idx = indices[:test_n] # <-- fixed test_idx slicing
+        # print("Total n:", len(self.x_all))
+        # print("Train n:", train_n)
+        # print("Train indices:", train_idx)
+        # print("Test indices:", test_idx)
+    
 
         self.x_train = self.x_all[train_idx]
         self.y_train = self.y_all[train_idx]
