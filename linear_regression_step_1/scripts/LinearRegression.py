@@ -15,10 +15,10 @@ class LinearRegression:
         self.best: Tuple[Optional[float], Optional[float], float] = (None, None, float('inf'))
 
 
-    # y = mx + b => b = y - mx
-    # Fixed swapped m and b in calculation
+    # y = mx + b => b = y - mx    vvv x must come before y vvv
     def _intercept_for_slope(self, x: float, y: float, m: float) -> float:
-        return float(y - m * x)
+        return y - m * x
+    print(f'{_intercept_for_slope}')
 
 
     # Compute the RSS for a given slope (used in bracketing).
@@ -57,12 +57,12 @@ class LinearRegression:
                 curr_rss_bound = self._rss_for_slope(x_values, y_values, mean_x, mean_y, curr_slope_bound)
                 # It stopped improving -> bracket between prev_slope_bound/expand_factor and
                 # curr_slope_bound.
-            if curr_rss_bound >= prev_rss_bound:
-            # bracket between prev (last improving) and curr (first non-improving)
-                low, high = prev_slope_bound, curr_slope_bound
-                return (min(low, high), max(low, high))
-            prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
-        return (starting_low_slope, prev_slope_bound)
+                if curr_rss_bound >= prev_rss_bound:
+                    low, high = prev_slope_bound, curr_slope_bound # <- These two lines were edited
+                    return (min(low, high), max(low, high))        # <- The minimum and maximum lows and highs needed to be computed
+                prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
+            # Reached the maximum iterations without stopping. Return a wide bracket.
+            return (starting_low_slope, prev_slope_bound)
 
         # If the low side improves, expand downward.
         if rss_low < rss_high:
@@ -72,10 +72,10 @@ class LinearRegression:
                 curr_slope_bound = prev_slope_bound / expand_factor
                 curr_rss_bound = self._rss_for_slope(x_values, y_values, mean_x, mean_y, curr_slope_bound)
                 if curr_rss_bound >= prev_rss_bound:
-                    low, high = curr_slope_bound, prev_slope_bound
-                return (min(low, high), max(low, high))
-            prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
-        return (prev_slope_bound, starting_high_slope)
+                    low, high = curr_slope_bound, prev_slope_bound # <- These two lines were edited
+                    return (min(low, high), max(low, high))        # <- The minimum and maximum lows and highs needed to be computed
+                prev_slope_bound, prev_rss_bound = curr_slope_bound, curr_rss_bound
+            return (prev_slope_bound, starting_high_slope)
 
         # No clear improvement direction found.
         return None
@@ -85,8 +85,7 @@ class LinearRegression:
     def rss(self, x_values: Iterable[float], y_values: Iterable[float], slope: float, intercept: float) -> float:
         xa = np.asarray(x_values, dtype=float)
         ya = np.asarray(y_values, dtype=float)
-        # Fixed formula to caluclate RSS properly
-        actual_y = slope * xa + intercept
+        actual_y = slope * xa + intercept # <- previous calculation error fixed here
         res = ya - actual_y
         rss = (res ** 2).sum()
         return float(rss)
@@ -163,7 +162,7 @@ class LinearRegression:
                     rss = float((residuals ** 2).sum())
                     yield (m, b, rss, epoch_idx)
                     self.trials_by_epoch[epoch_idx].append((m, b, rss))
-                    # Update the best-so-far.
+                    # Update the best-so-far with proper < rather than >
                     if rss < self.best[2]:
                         self.best = (m, b, rss)
                     if rss < best_local_tuple[2]:
