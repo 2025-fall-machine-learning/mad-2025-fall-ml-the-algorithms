@@ -18,6 +18,15 @@ def main():
                         headless=args.headless)
 
     if best and isinstance(best, dict):
+        # Tuple to Dict converter
+        m = best['m']
+        b = best['b']
+        train_rss = best['train_rss']
+        test_rss = best['test_rss']
+        train_rmse = best['train_rmse']
+        test_rmse = best['test_rmse']
+        train_r2 = best['train_r2']
+        test_r2 = best['test_r2']
         print('\nBest model (cars):')
         print(f"  slope={best['m']:.6f}, intercept={best['b']:.3f}")
         print(f"  train_rss={best['train_rss']:.2f}, test_rss={best['test_rss']:.2f}")

@@ -44,6 +44,7 @@ class Split:
         indices = list(range(len(self.x_all)))
         rng.shuffle(indices)
         train_n = int(len(indices) * self.train_frac)
+        # added test_n calculation and altered test_idx calculation
         test_n = len(indices) - train_n
         train_idx = indices[:train_n]
         test_idx = indices[:test_n]
