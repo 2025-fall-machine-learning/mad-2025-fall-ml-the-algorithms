@@ -19,7 +19,7 @@ Brief overview of the project:
         - Moreover, each trait's influence may be weak or inconsistent.
     - **Coefficients are very low.**
         - Most of the predictors are close to zero, implying minimal impact on the survival score.
-    - **Standard Errors are smaller.**
+    - **Standard Errors are relatively smaller.**
         - This suggests that the estimates are precise, but it is unlikely to be meaningful, if the coefficients themselves are weak.
 - Z-score distribution analysis.
     - This distribution illustrates how the traits vary across participants, however it does not unveil strong predictive patterns.
@@ -87,19 +87,6 @@ Brief overview of the project:
         | Byron      | 70.67                    |
         | Jonah      | 61.25                    |
 
-- This scatter plot illustrates the relationship between the reduced set of predictors and the model's predicted survival scores for new participants.
-    - Directionality
-        - The red best-fit line has a relatively upward slope, depicting how higher trait values are associated with higher predicted survival scores.
-    - Variance
-        - The graph has a good amount of variance which allows the graph to be dynamic and respond to new input while not being too rigid or underfitted.
-    - Bias
-        - There does not appear to be any obvious skew, implying low bias in the model's predictions.
-    - Predictive Stability
-        - The consistent alignment of points along the line suggests that the model generalizes its learned relationships well.
-        - Additionally, this demonstrates that the model is not being overfitted to the training data, denoting its predictive relevance.
-
-    ![Multiple Linear Regression Plot](multiple_linear_regression_plot.png)
-
 - Previous and predicted score distribution, include mean alignment.
     - Visual: Histogram overlay with two vertical dashed lines marking the mean survival scores.
     - **Past Mean: 49.57**
@@ -114,8 +101,6 @@ Brief overview of the project:
 
 ### 3.3 Interpretation
 - The survival experts captured the average survival profile but missed individual nuance, as shown by compressed prediction spread.
-- The scatter plot of predicted scores revealed low bias and moderate variance.
-    - Thus, the model responds dynamically to input changes without skewing toward any particular region. 
 - The experts' scoring system reflected a stable but shallow predictive framework.
     - This makes it adequate for estimating average performance, but insufficient for capturing individual nuance. 
 

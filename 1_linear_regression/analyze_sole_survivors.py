@@ -50,7 +50,7 @@ def create_modified_df(df, model, simple_or_multiple, make_predictions, reduced_
         modified_survivors_df['PredictedSurvivalScore'] = prediction
         # Only sort and round the prediction column, keep all predictors
         modified_survivors_df['PredictedSurvivalScore'] = modified_survivors_df['PredictedSurvivalScore'].round(2)
-        modified_survivors_df = modified_survivors_df.sort_values(by='PredictedSurvivalScore', ascending=False)
+        # modified_survivors_df = modified_survivors_df.sort_values(by='PredictedSurvivalScore', ascending=False)
         response = modified_survivors_df['PredictedSurvivalScore'].values
         response_name = 'PredictedSurvivalScore'
     else:
@@ -327,7 +327,7 @@ def main():
         reduced_model = create_linear_regression_model(reduced_past_predictors, sole_past_df['SurvivalScore'].values)
     elif not make_predictions and reduced_model:
         training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
-            testing_prediction, testing_response, testing_predictors, model \
+            testing_prediction, testing_response, testing_predictors, reduced_model \
                 = linear_regression(simple_or_multiple, sole_past_df, use_testing_set, reduced_model=True)
     elif make_predictions and not reduced_model:
         training_modified_survivor_df, testing_modified_survivor_df, response_name, training_prediction, training_response, training_predictors, \
@@ -391,6 +391,8 @@ def main():
         linearity_check(correlation_df, 'multiple', response_name, predicted_score)
 
         # k_fold_cross_validation(next_predictors, predicted_score, k=5)
+
+        r_squared_value(reduced_model if reduced_model else model, next_predictors, predicted_score)
 
         # Create reduced dataframe for plotting
         if reduced_model:
