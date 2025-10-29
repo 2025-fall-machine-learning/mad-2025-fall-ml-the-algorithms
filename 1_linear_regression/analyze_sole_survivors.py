@@ -364,16 +364,16 @@ def main():
             printing_values(simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors)
             # r_squared_value(model, sorted_training_predictors, sorted_training_response)
             linearity_check(training_modified_survivor_df, simple_or_multiple, response_name, training_response)
-            plotting_values(False,simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
+            plotting_values(False,simple_or_multiple, False, sorted_training_prediction, sorted_training_response, sorted_training_predictors, reduced_model if reduced_model else model)
             # r_squared_value(model, sorted_testing_predictors, sorted_testing_response)
             linearity_check(testing_modified_survivor_df, simple_or_multiple, response_name, testing_response)
-            plotting_values(False, simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors, model)
+            plotting_values(False, simple_or_multiple, use_testing_set, sorted_testing_prediction, sorted_testing_response, sorted_testing_predictors, reduced_model if reduced_model else model)
         else:
             # Run for both simple and multiple linear regression without a testing set
             printing_values(simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors)
             # r_squared_value(model, sorted_training_predictors, sorted_training_response)
             linearity_check(training_modified_survivor_df, simple_or_multiple, response_name, training_response)
-            plotting_values(False, simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, model)
+            plotting_values(False, simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, reduced_model if reduced_model else model)
             # Statistical summary and z-score distribution only for multiple linear regression
             if simple_or_multiple == 'multiple':
                 statistical_summary(sole_past_df, sorted_training_predictors)
@@ -382,7 +382,8 @@ def main():
         # Make predictions on the next set of survivors
         # Print predicted top three survivors
         print('The predicted survival scores for the next set of survivors are:')
-        print(modified_sole_next_df[['Name', 'PredictedSurvivalScore']].head(3).to_string(index=False))
+        print(modified_sole_next_df[['Name', 'PredictedSurvivalScore']].sort_values(by='PredictedSurvivalScore'\
+                                                                                    , ascending=False).head(3).to_string(index=False))
         # Create heatmap for linearity check using unsorted scores
         if reduced_model:
             correlation_df = modified_sole_next_df.drop(columns=['Name', 'PredictedSurvivalScore', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork'])
