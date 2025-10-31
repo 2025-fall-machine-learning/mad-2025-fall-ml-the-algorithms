@@ -36,7 +36,7 @@ def perform_linear_regression_prediction(model, predictors):
 
 # Function to create modified dataframe for linearity check and regression
 def create_modified_df(df, model, simple_or_multiple, make_predictions, reduced_model):
-
+    # Define reduced columns based on whether predictions are being made
     if not make_predictions:
         reduced_columns = ['Name', 'Leadership', 'RiskTaking', 'Resourcefulness', 'Teamwork', 'SurvivalScore']
     else:
@@ -376,7 +376,7 @@ def main():
             plotting_values(False, simple_or_multiple, use_testing_set, sorted_training_prediction, sorted_training_response, sorted_training_predictors, reduced_model if reduced_model else model)
             # Statistical summary and z-score distribution only for multiple linear regression
             if simple_or_multiple == 'multiple':
-                statistical_summary(sole_past_df, sorted_training_predictors)
+                statistical_summary(sole_past_df, training_predictors)
                 plot_zscore_distribution(sole_past_df, 'SurvivalScore')
     else:
         # Make predictions on the next set of survivors

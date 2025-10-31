@@ -11,16 +11,33 @@ Brief overview of the project:
 
 ### 2.1 Statistical Analysis of Past Scores
 - Summary statistics of past survival scores.
-    - **R-squared: 0.090**
-        - Only 9% of the traits estimated by the survival specialists explain the survival score.
-        - This suggests that the raw approximations are not strong enough to predict real outcomes.
-    - **P-values: None below 0.05.**
-        - This demonstrates that none of the predictors are statistically significant.
-        - Moreover, each trait's influence may be weak or inconsistent.
-    - **Coefficients are very low.**
-        - Most of the predictors are close to zero, implying minimal impact on the survival score.
-    - **Standard Errors are relatively smaller.**
-        - This suggests that the estimates are precise, but it is unlikely to be meaningful, if the coefficients themselves are weak.
+    - **R-squared: 0.820**
+        - Approximately 82% of the traits estimated by the survival specialists explain the survival score.
+        - This indicates a strong linear relationship between all of the relevant predictors and the actual survival score.
+            - Thus, the experts' scoring system contains substantial predictive signal. 
+    - **P-values: Three predictors below 0.001 (x2, x7, and x9).**
+        - This demonstrates that these three specific features are statistically significant, with p-values of 0.000.
+        - As such, these traits contribute meaningfully to predicting survival scores, while other scores may have weaker or inconsistent effects. 
+    - **Coefficients vary widely.**
+        - Strong positive influence: Traits x6, x8, and x7 show substantial impact.
+        - Moderate to minimal positive influence: Traits x2, x3, and x4 contribute positively, but with a less pronounced effect.
+        - Negative influence: Traits x5, x9, and x1 reduce survival scores, ranging from mild to strong. 
+            - Overall, most of the coefficients contribute positively to the survival scores, with three pulling the scores downward. 
+    - **Standard errors are consistent and relatively low.**
+        - This suggests stable and precise estimates, especially for the significant predictors. 
+
+        | Variables | Traits          | P-values | Coefficients | Std Err |
+        |-----------|-----------------|----------|--------------|---------|
+        | x1        | Leadership      | 0.115    | -0.6528      | 0.410   |
+        | x2        | MentalToughness | 0.000    |  0.4611      | 0.047   |
+        | x3        | SurvivalSkills  | 0.465    |  0.3275      | 0.447   |
+        | x4        | RiskTaking      | 0.913    |  0.0484      | 0.444   |
+        | x5        | Resourcefulness | 0.528    | -0.2681      | 0.423   |
+        | x6        | Adaptability    | 0.092    |  0.7142      | 0.419   |
+        | x7        | PhysicalFitness | 0.000    |  0.5012      | 0.046   |
+        | x8        | Teamwork        | 0.099    |  0.6760      | 0.405   |
+        | x9        | Stubborness     | 0.000    | -0.5329      | 0.049   |
+
 - Z-score distribution analysis.
     - This distribution illustrates how the traits vary across participants, however it does not unveil strong predictive patterns.
 
@@ -44,7 +61,7 @@ Brief overview of the project:
         - **RMSE: 7.3465**
         - **R-Squared: 0.8167**
             - On average, the model's predictions deviate from actual survival scores by 7.35 points.
-            - An r-squared of 0.82 indicates that the model explains 82% of the variance in the training data.
+            - An r-squared of 0.8167 indicates that the model explains 82% of the variance in the training data.
                 - This suggests that the model has meaningful predictive power.
 
     ![Training Scores - Multiple Linear Regression](linear_regression_training_plot.png)
@@ -60,9 +77,10 @@ Brief overview of the project:
     ![Testing Scores - Multiple Linear Regression](linear_regression_testing_plot.png)
 
 ### 2.3 Interpretation of Past Scores
-- The survival experts, overall, scored the previous contestants consistently, but not with predictive accuracy.
-- The initial statistical analysis revealed weak alignment between estimated traits and the actual survival outcomes.
-    - With the low r-squared, non-significant p-values, and minimal coefficients, they demonstrated that the raw expert scores would likely not be reliable predictors.
+- The survival experts, overall, scored the previous contestants consistently, with strong predictive alignment for key features.
+- The initial statistical analysis revealed strong alignment between estimated traits and actual survival outcomes.
+    - With an r-squared of 0.82 and significant predictors (x2, x7, and x9), the expert scores show robust predictive capability. 
+    - However, several features remain statistically weak, suggesting that while the scoring system is effective overall, not all traits contribute equally. 
 - Nevertheless, the regression model showed strong performance after reducing the predictor set, based on the linearity check.
     - The training and testing r-squared values (0.8167 and 0.7896) indicate that the refined trait subset captures meaningful variance in the survival scores.
     - Moreover, while the full set of expert scores were noisy, the filtered subset retained its predictive relevance.
@@ -105,8 +123,9 @@ Brief overview of the project:
     - This makes it adequate for estimating average performance, but insufficient for capturing individual nuance. 
 
 ## 4. Conclusion
-- In summary, there is a clear disconnect between the survival experts' trait scoring and actual survival outcomes.
-    - The experts' ratings were consistent, but they lacked substantial predictive ability based on the initial statistical diagnostics.
+- In summary, the survival experts' trait scoring shows strong alignment with actual survival outcomes.
+    - The experts' ratings were consistent and statistically predictive, especially for key traits.
+    - Nevertheless, some traits lacked significance, indicating room for refinement in the scoring framework. 
 - The distribution of predicted scores, additionally, was compressed, suggesting that the experts' ratings were too conservative and lacked sensitivity of the contestants' behaviors. 
 - Overall, the expert scoring framework contains **latent predictive value**, but its cautious structure and trait redundancy limited its effectiveness.
     - Without refinement, the system risks underrepresenting behavioral nuance and misaligning with real-world performance. 
@@ -117,6 +136,6 @@ Brief overview of the project:
         - Ensure they keep variables independent of each other by avoiding scoring traits that are conceptually or statistically redundant. 
             - This will reduce multicollinearity and deepen the interpretability of predictive models.
 - Expand the Scoring Range
-    - Include a broader scoring range where they can be more liberal about assigning greater point values to participant's traits, where relevant.
+    - Include a broader scoring range where they can be more liberal about assigning greater point values to participants' traits, where relevant.
         - This will help differentiate contestants who are likely to perform higher.
 - Together, these adjustments will aid in enhancing the predictability of the model while identifying the individual strengths of participants more accurately. 
