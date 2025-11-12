@@ -208,3 +208,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+2_classification/main2.py
+2_classification/main3.py
+2_classification/main4.py
