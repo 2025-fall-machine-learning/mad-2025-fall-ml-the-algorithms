@@ -133,7 +133,7 @@ def predict(diabetes_df):
         print(f'Average true positives ({name}): {avg_tp}')
 
 def main():
-    diabetes_df = pd.read_csv('pa_diabetes.csv')
+    diabetes_df = pd.read_csv('analyze_diabetes\\pa_diabetes.csv')
     predict(diabetes_df)
 
 
