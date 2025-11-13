@@ -65,6 +65,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
     if balance_counter == 1:
         balanced_str = 'balanced'
 
+    #bugfix: initialize summary_stats only if None
     if summary_stats is None:
         summary_stats = [[[], []], [[], []]]
 
@@ -92,6 +93,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_poss, false_negs, true_poss, sensitivity, specificity) \
             = compute_confusion_matrix_numbers(diabetes_response_testing_df, prediction)
 
+        #bugfix: was always appending to unbalanced list
         summary_stats[balance_counter][ACTUAL_DATA].append([true_negs, false_poss, false_negs, true_poss])
         #print(summary_stats)
 
@@ -106,6 +108,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                 false_poss, false_negs, true_poss, sensitivity, specificity) \
             = compute_confusion_matrix_numbers(diabetes_response_testing_df, all_negatives_prediction)
 
+        #bugfix: was always appending to unbalanced list
         summary_stats[balance_counter][ALL_NEGATIVES].append([true_negs, false_poss, false_negs, true_poss])
         # print(summary_stats)
         return summary_stats
@@ -119,10 +122,7 @@ def predict(diabetes_df):
     diabetes_predictors_df = diabetes_df[all_independent_vars]
     diabetes_response_df = diabetes_df['Outcome']
 
-    #for balance_counter in range(2):
-    #    summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
-    #                                                balance_counter, None)
-
+    #bugfix: I dont remember what was here before but it was wrong
     summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df, 0, None)
     summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df, 1, summary_stats)
 
