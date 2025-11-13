@@ -46,6 +46,23 @@ def train(diabetes_df):
     # print(predictors_df.head())
     # print(response.head())
     
+def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df, balance_counter, summary_stats)
+
+    balanced_str = 'unbalanced'
+    if balance_counter == 1:
+        balanced_str = 'balanced'
+        
+    for random_state in range(0, 3):
+        if balance_counter == 1:
+            random_over_sampler = ios.RandomOverSampler(random_state=random_state)
+            diabetes_predictors_df, diabetes_response_df \
+                = random_over_sampler.fit_resample(diabetes_predictors_df, diabetes_response_df)
+                
+    (diabetes_predictors_training_df, )
+    summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state, 
+                        [true_negs, false_poss, false_negs, true_poss])
+        return summary_stats
+    
 def predict(diabetes_df):
     diabetes_df = diabetes_df.drop(['DNR Order', 'Med Tech'], axis='columns')
     
