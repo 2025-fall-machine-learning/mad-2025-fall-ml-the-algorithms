@@ -65,6 +65,8 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
     if balance_counter == 1:
         balanced_str = 'balanced'
 
+        summary_stats = [[[], []], [[], []] ]   # First element: [ACTUAL_DATA list, ALL_NEGATIVES list]  Second element: [ACTUAL_DATA list, ALL_NEGATIVES list]   
+
     for random_state in range(0, 3):
         if balance_counter == 1:
             random_over_sampler = ios.RandomOverSampler(random_state=random_state)
@@ -76,10 +78,6 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
             = ms.train_test_split(diabetes_predictors_df, diabetes_response_df, \
                 test_size = 0.2, random_state=random_state)
 
-        summary_stats = [
-            [[], []],   # First element: [ACTUAL_DATA list, ALL_NEGATIVES list]
-            [[], []]    # Second element: [ACTUAL_DATA list, ALL_NEGATIVES list]   
-        ]
 
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(diabetes_predictors_training_df, diabetes_response_training_df)
@@ -93,7 +91,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                 false_poss, false_negs, true_poss, sensitivity, specificity) \
             = compute_confusion_matrix_numbers(diabetes_response_testing_df, prediction) #<-- positional arguements added
         
-        summary_stats[balance_counter][ACTUAL_DATA].append(#<-- 'insert' replaced with 'append', deleted 'random_state' from positional arguemnt
+        summary_stats[balance_counter][ACTUAL_DATA].insert(random_state
                             [true_negs, false_poss, false_negs, true_poss])
         # print(summary_stats)
 
@@ -108,7 +106,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                 false_poss, false_negs, true_poss, sensitivity, specificity) \
             = compute_confusion_matrix_numbers(diabetes_response_testing_df, all_negatives_prediction) #<-- positional arguements added
 
-        summary_stats[balance_counter][ALL_NEGATIVES].append(#<-- 'insert' replaced with 'append', deleted 'random_state' from positional arguemnt
+        summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state
                             [true_negs, false_poss, false_negs, true_poss])
         # print(summary_stats)
         return summary_stats
@@ -123,11 +121,51 @@ def predict(diabetes_df):
     diabetes_response_df = diabetes_df['Outcome']
 
     for balance_counter in range(2):
+        summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df, 
+                                                    balance_counter, summary_stats)
+    for balance_counter in range(2):
+        balanced_str = 'unbalanced'
+        if balance_counter == 1:
+            balanced_str = 'balanced'
+            
+        avg_actual_true_negs = 0
+        avg_actual_false_poss = 0
+        avg_actual_false_negs = 0
+        avg_actual_true_poss = 0
+        for inner_stats_counter in range(num_inner_stats):
+            # print([[[], []], [[], []]])
+            # print([[[], []], [[], []]][0])
+            # print([[[], []], [[], []]][0][0])
+            # print([[[], []], [[], []]][0][0][0])
+            # print([[['a', 'b'], []], [[], []]][0][0][0])
+            # print(f"bc: {balance_counter}, ad: {ACTUAL_DATA}, isc: {inner_stats_counter}")
+            # print(summary_stats)
+            inner_stats = summary_stats[balance_counter][ACTUAL_DATA][inner_stats_counter]
+            avg_actual_true_negs += inner_stats[0]
+            avg_actual_false_poss += inner_stats[1]
+            avg_all_false_negs += inner_stats[2]
+            avg_all_true_poss += inner_stats[3]
+            
+        
+        avg_all_negatives_true_negs = 0
+        avg_all_negatives_false_poss = 0
+        avg_all_negatives_false_negs = 0
+        avg_all_negatives_true_poss = 0
+        
+        # for inner_stats_counter in range(num_inner_stats):
+        #     print(f"balance_counter: {balance_counter}, ad: {ACTUAL_DATA}, isc: {inner_stats_counter}")
+        #     print(f"summary_stats: {summary_stats}")
+        #     inner_stats = summary_stats[balance_counter][ACTUAL_DATA][inner_stats_counter]
+        print(
+            f"Statistics, {balanced_str},  actual, tp: {avg_actual_true_poss:.2f}, "
+            + f"fp: {avg_actual_false_poss:.2f}, fn: {avg_actual_false_negs}, "
+            + f"tn: {avg_actual}"
+)
         summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                                                     balance_counter, None)
 
 
-def main():
+def main():d
     diabetes_df = pd.read_csv('E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/2_classification/diabetes/pa_diabetes.csv')
     predict(diabetes_df)
 
