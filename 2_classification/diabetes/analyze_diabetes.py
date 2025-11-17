@@ -52,7 +52,7 @@ def create_confusion_matrix(actual_data_df, prediction):
     # sns.heatmap(confusion_tuple, annot=True)
     # plt.show()
 
-
+# Initialized constants for summary stats indexing
 UNBALANCED_POS = 0
 BALANCED_POS = 1
 ACTUAL_DATA = 0
@@ -65,25 +65,25 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
     if balance_counter == 1:
         balanced_str = 'balanced'
 
-    # if not summary_stats:
-    #    summary_stats = [[[], []]], [[[], []]]
-
     for random_state in range(0, 3):
+
+        # Make copies to avoid modifying original dataframes
+        predictors_df = diabetes_predictors_df.copy()
+        response_df = diabetes_response_df.copy()
+
         if balance_counter == 1:
             random_over_sampler = ios.RandomOverSampler(random_state=random_state)
-            diabetes_predictors_df, diabetes_response_df \
-                = random_over_sampler.fit_resample(diabetes_predictors_df, diabetes_response_df)
+            predictors_df, response_df \
+                = random_over_sampler.fit_resample(predictors_df, response_df)
 
         (diabetes_predictors_training_df, diabetes_predictors_testing_df,
             diabetes_response_training_df, diabetes_response_testing_df) \
-            = ms.train_test_split(diabetes_predictors_df, diabetes_response_df, \
+            = ms.train_test_split(predictors_df, response_df, \
                 test_size = 0.2, random_state=random_state)
 
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(diabetes_predictors_training_df, diabetes_response_training_df)
         prediction = model.predict(diabetes_predictors_testing_df)
-
-        # print(f'Diabtetes_predictors_testing_df: {diabetes_predictors_testing_df}')
 
         show_prediction_results(f'Logistic regression, {balanced_str}', prediction, diabetes_response_testing_df)
         # accuracy = metrics.accuracy_score(diabetes_response_testing_df, prediction)
@@ -95,7 +95,6 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
 
         summary_stats[balance_counter][ACTUAL_DATA].append(
                             [true_negs, false_poss, false_negs, true_poss])
-        print(summary_stats)
 
         # When unbalanced, we achieve ~60+% just predicting everybody does not have diabetes! This is
         # the problem of unbalanced data. We have many more people without diabetes than with diabetes.
@@ -110,8 +109,8 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
 
         summary_stats[balance_counter][ALL_NEGATIVES].append(
                             [true_negs, false_poss, false_negs, true_poss])
-        # print(summary_stats)
 
+    # Moved return statement outside of the random_state loop
     return summary_stats
 
 
@@ -123,18 +122,19 @@ def predict(diabetes_df):
     diabetes_predictors_df = diabetes_df[all_independent_vars]
     diabetes_response_df = diabetes_df['Outcome']
 
-    summary_stats = [[[], []]], [[[], []]]
+    # Properly initialize summary_stats as a list of lists
+    summary_stats = [
+        [[], []],
+        [[], []]
+    ]
 
     for balance_counter in range(2):
-
-        print(f'Balance counter: {balance_counter}')
-
         summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                                                     balance_counter, summary_stats)
 
 
 def main():
-    diabetes_csv = 'C:\\Users\\emoge\\OneDrive\\Documents\\GitHub\\mad-2025-fall-ml-the-algorithms\\2_classification\\diabetes\\pa_diabetes.csv'
+    diabetes_csv = 'C:\\Users\\Emogen\\OneDrive\\Documents\\GitHub\\mad-2025-fall-ml-the-algorithms\\2_classification\\diabetes\\pa_diabetes.csv'
     diabetes_df = pd.read_csv(diabetes_csv)
     predict(diabetes_df)
 
