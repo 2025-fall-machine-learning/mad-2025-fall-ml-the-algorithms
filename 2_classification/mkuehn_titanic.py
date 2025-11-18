@@ -1,8 +1,9 @@
 import  numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
+import sklearn.model_selection as ms
+import sklearn.linear_model as lm
+import sklearn.metrics as metrics
 import imblearn.over_sampling as ios
 import seaborn as sns
 
