@@ -21,6 +21,7 @@ def show_prediction_results(header, prediction, actual_data):
     print('{0}: {1} correct, {2} incorrect, precision: {3}.'
         .format(header, num_correct_predictions, num_incorrect_predictions,
         (num_correct_predictions/(num_correct_predictions+num_incorrect_predictions))))
+    
     return (num_correct_predictions/(num_correct_predictions+num_incorrect_predictions))
 
 
@@ -110,8 +111,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
         summary_stats[balance_counter][ALL_NEGATIVES].append(
                             [true_negs, false_poss, false_negs, true_poss])
 
-    # Moved return statement outside of the random_state loop
-    return summary_stats
+        return summary_stats
 
 
 def predict(diabetes_df):
@@ -134,7 +134,7 @@ def predict(diabetes_df):
 
 
 def main():
-    diabetes_csv = 'C:\\Users\\Emogen\\OneDrive\\Documents\\GitHub\\mad-2025-fall-ml-the-algorithms\\2_classification\\diabetes\\pa_diabetes.csv'
+    diabetes_csv = 'C:\\Users\\emoge\\OneDrive\\Documents\\GitHub\\mad-2025-fall-ml-the-algorithms\\2_classification\\diabetes\\pa_diabetes.csv'
     diabetes_df = pd.read_csv(diabetes_csv)
     predict(diabetes_df)
 
