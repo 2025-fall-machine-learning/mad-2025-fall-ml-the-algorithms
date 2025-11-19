@@ -120,9 +120,9 @@ def predict_new_survivor(future_data, trained_model):
     print(prediction)
     prediction_results = future_data.copy()
     prediction_results["PredictedSurvivalScore"] = prediction
-    top_tree = prediction_results.nlargest(3, 'PredictedSurvivalScore')
+    top_three = prediction_results.nlargest(3, 'PredictedSurvivalScore')
     print("Top 3 Predicted Sole Survivors by Survival Score:")
-    print(top_tree[['Name', 'PredictedSurvivalScore']])
+    print(top_three[['Name', 'PredictedSurvivalScore']])
     graph(predictors[:,0], prediction_results["PredictedSurvivalScore"], 'purple', prediction, "Next Sole Survivor Predictions", 
           xlabel="Sole Survivor", ylabel="Predicted Survival Score")
    

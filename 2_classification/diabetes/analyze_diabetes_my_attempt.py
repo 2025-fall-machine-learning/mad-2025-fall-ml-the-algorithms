@@ -76,19 +76,24 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
             = ms.train_test_split(diabetes_predictors_df, diabetes_response_df, \
                 test_size = 0.2, random_state=random_state)
 
+        summary_stats = [
+            [[], []],   # First element: [ACTUAL_DATA list, ALL_NEGATIVES list]
+            [[], []]    # Second element: [ACTUAL_DATA list, ALL_NEGATIVES list]   
+        ]
+
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(diabetes_predictors_training_df, diabetes_response_training_df)
         prediction = model.predict(diabetes_predictors_testing_df)
 
-        # show_prediction_results(f'Logistic regression, {balanced_str}', prediction, diabetes_response_testing_df)
+        show_prediction_results(f'Logistic regression, {balanced_str}', prediction, diabetes_response_testing_df)
         # accuracy = metrics.accuracy_score(diabetes_response_testing_df, prediction)
         # print('Sklearn accuracy: {0}'.format(accuracy))
         # Seems pretty good, doesn't it? Looks can be deceiving.
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
                 false_poss, false_negs, true_poss, sensitivity, specificity) \
-            = compute_confusion_matrix_numbers(diabetes_response_testing_df, prediction)
-
-        summary_stats[balance_counter][ACTUAL_DATA].insert(random_state,
+            = compute_confusion_matrix_numbers(diabetes_response_testing_df, prediction) #<-- positional arguements added
+        
+        summary_stats[balance_counter][ACTUAL_DATA].append(#<-- 'insert' replaced with 'append', deleted 'random_state' from positional arguemnt
                             [true_negs, false_poss, false_negs, true_poss])
         # print(summary_stats)
 
@@ -96,18 +101,17 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
         # the problem of unbalanced data. We have many more people without diabetes than with diabetes.
         all_negatives_prediction = [0]*len(diabetes_response_testing_df)
 
-        # show_prediction_results("All negatives predictions", all_negatives_prediction, diabetes_response_testing_df)
+        show_prediction_results("All negatives predictions", all_negatives_prediction, diabetes_response_testing_df)
         # accuracy = metrics.accuracy_score(diabetes_response_testing_df, all_negatives_prediction)
         # print('Sklearn accuracy: {0}'.format(accuracy))
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
                 false_poss, false_negs, true_poss, sensitivity, specificity) \
-            = compute_confusion_matrix_numbers(diabetes_response_testing_df, all_negatives_prediction)
+            = compute_confusion_matrix_numbers(diabetes_response_testing_df, all_negatives_prediction) #<-- positional arguements added
 
-        summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state,
+        summary_stats[balance_counter][ALL_NEGATIVES].append(#<-- 'insert' replaced with 'append', deleted 'random_state' from positional arguemnt
                             [true_negs, false_poss, false_negs, true_poss])
-
-    # print(summary_stats)
-    return summary_stats
+        # print(summary_stats)
+        return summary_stats
 
 
 def predict(diabetes_df):
@@ -118,65 +122,9 @@ def predict(diabetes_df):
     diabetes_predictors_df = diabetes_df[all_independent_vars]
     diabetes_response_df = diabetes_df['Outcome']
 
-    summary_stats = [[[],[]],[[],[]]]
     for balance_counter in range(2):
         summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
-                                                    balance_counter, summary_stats)
-
-    num_inner_stats = len(summary_stats[balance_counter][ACTUAL_DATA])
-    for balance_counter in range(2):        
-        balanced_str = 'unbalanced'
-        if balance_counter == 1:
-            balanced_str = 'balanced'
-
-        avg_actual_true_negs = 0
-        avg_actual_false_poss = 0
-        avg_actual_false_negs = 0
-        avg_actual_true_poss = 0
-        for inner_stats_counter in range(num_inner_stats):
-            inner_stats = summary_stats[balance_counter][ACTUAL_DATA][inner_stats_counter]
-            avg_actual_true_negs += inner_stats[0]
-            avg_actual_false_poss += inner_stats[1]
-            avg_actual_false_negs += inner_stats[2]
-            avg_actual_true_poss += inner_stats[3]
-
-        avg_all_negatives_true_negs = 0
-        avg_all_negatives_false_poss = 0
-        avg_all_negatives_false_negs = 0
-        avg_all_negatives_true_poss = 0
-        for inner_stats_counter in range(num_inner_stats):
-            inner_stats = summary_stats[balance_counter][ALL_NEGATIVES][inner_stats_counter]
-            avg_all_negatives_true_negs += inner_stats[0]
-            avg_all_negatives_false_poss += inner_stats[1]
-            avg_all_negatives_false_negs += inner_stats[2]
-            avg_all_negatives_true_poss += inner_stats[3]
-            
-        avg_actual_true_negs /= num_inner_stats
-        avg_actual_false_poss /= num_inner_stats
-        avg_actual_false_negs /= num_inner_stats
-        avg_actual_true_poss /= num_inner_stats
-        avg_all_negatives_true_negs /= num_inner_stats
-        avg_all_negatives_false_poss /= num_inner_stats
-        avg_all_negatives_false_negs /= num_inner_stats
-        avg_all_negatives_true_poss /= num_inner_stats
-
-        print(
-            f"Statistics, {balanced_str}, actual, tp: {avg_actual_true_poss:.2f}, "
-            + f"fp: {avg_actual_false_poss:.2f}, fn: {avg_actual_false_negs:.2f}, "
-            + f"tn: {avg_actual_true_negs:.2f}."
-        )
-        print(
-            f"Statistics, {balanced_str}, all 0s, tp: {avg_all_negatives_true_poss:.2f}, "
-            + f"fp: {avg_all_negatives_false_poss:.2f}, fn: {avg_all_negatives_false_negs:.2f}, "
-            + f"tn: {avg_all_negatives_true_negs:.2f}."
-        )
-
-        # print(
-        #     f"Statistics, {balanced_str}, actual, ."
-        # )
-        # print(
-        #     f"Statistics, {balanced_str}, all 0s, ."
-        # )
+                                                    balance_counter, None)
 
 
 def main():
