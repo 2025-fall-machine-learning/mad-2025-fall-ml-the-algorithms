@@ -1,0 +1,4 @@
+Sensitivity_before_SMOTE: 0.71
+Specificity_before_SMOTE: 0.80
+Sensitivity_after_SMOTE: 0.78
+Specificity_after_SMOTE: 0.72
