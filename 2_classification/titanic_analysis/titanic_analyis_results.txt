@@ -1,0 +1,2 @@
+Confusion Matrix Without Balancing: sensitivity = 0.833, specificity = 0.385
+Confusion Matrix With Balancing: sensitivity = 0.615, specificity = 0.875
