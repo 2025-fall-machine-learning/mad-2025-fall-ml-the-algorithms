@@ -21,7 +21,14 @@ def show_prediction_results(header, prediction, actual_data):
                   (num_correct_predictions/(num_correct_predictions+num_incorrect_predictions))))
     return (num_correct_predictions/(num_correct_predictions+num_incorrect_predictions))
 
-def compute_confustion_matrix_numbers(actual_data_df, prediction):
+def make_heatmap(corr_df):
+    corr_df = corr_df.select_dtypes(include=[np.number]).corr()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(corr_df, annot=True, fmt=".2f", cmap='coolwarm', cbar=True)
+    plt.title('Correlation Matrix Heatmap')
+    plt.show()
+
+def compute_confusion_matrix_numbers(actual_data_df, prediction):
     confusion_tuple = metrics.confusion_matrix(actual_data_df, prediction)
     command_line_display_as_accuracy_top_confusion_matrix = confusion_tuple.T
     command_line_display_as_accuracy_top_confusion_matrix = np.flip(command_line_display_as_accuracy_top_confusion_matrix, axis=0)
@@ -41,7 +48,7 @@ def compute_confustion_matrix_numbers(actual_data_df, prediction):
 
 def create_confusion_matrix(actual_data_df, prediction):
     (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_pos, false_negs, true_pos, sensitivity, specificity) \
-        = compute_confustion_matrix_numbers(actual_data_df, prediction)
+        = compute_confusion_matrix_numbers(actual_data_df, prediction)
     if (sensitivity > 0) or (specificity > 0):
         print(f'tp: {true_pos}, fn: {false_negs}, tn: {true_negs}, fp: {false_pos}, sensitivity: {sensitivity}, specificity: {specificity}.')
     print(command_line_display_as_accuracy_top_confusion_matrix)
@@ -75,7 +82,7 @@ def perform_logistic_regression(titanic_predictors_df, titanic_response_df, bala
 
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
                 false_pos, false_negs, true_pos, sensitivity, specificity) \
-            = compute_confustion_matrix_numbers(titanic_response_testing_df, prediction)
+            = compute_confusion_matrix_numbers(titanic_response_testing_df, prediction)
             
         summary_stats[balance_counter][ACTUAL_DATA].insert(random_state,
                             [true_negs, false_pos, false_negs, true_pos])
@@ -84,7 +91,7 @@ def perform_logistic_regression(titanic_predictors_df, titanic_response_df, bala
         
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
                 false_pos, false_negs, true_pos, sensitivity, specificity) \
-            = compute_confustion_matrix_numbers(titanic_response_testing_df, all_negatives_prediction)
+            = compute_confusion_matrix_numbers(titanic_response_testing_df, all_negatives_prediction)
             
         summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state,
                             [true_negs, false_pos, false_negs, true_pos])
@@ -115,8 +122,8 @@ def main():
     # print(titanic_df)
     titanic_fixed_df = titanic_df.dropna() ## <-- Dropped the NaN rows
     # print(titanic_fixed_df)
-    # create_confusion_matrix(titanic_fixed_df)
-    predict(titanic_fixed_df)
+    make_heatmap(titanic_fixed_df)
+    # predict(titanic_fixed_df)
     
 if __name__ == "__main__":
     main()
