@@ -18,7 +18,7 @@ def linearity_check(df):
     sns.heatmap(square_corr, annot=True, mask=mask)
     plt.title(f'Correlation Matrix for Survived + Traits')
     plt.tight_layout()
-    # plt.show()
+    plt.show()
 
 # Step 6: Compare response to an array of ones and prediction
 def print_comparison_results(comparison, prediction, response_df):
@@ -47,7 +47,7 @@ def cross_validated_accuracy(model, predictors, response):
 
 # Step 11: Create confusion matrix to get sensitivity and specificity
 def create_confusion_matrix(actual_data_df, prediction):
-    (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_poss, false_negs, true_poss, sensitivity, specificity) \
+    (sensitivity, specificity) \
         = compute_confusion_matrix_numbers(actual_data_df, prediction)
     
 def compute_confusion_matrix_numbers(actual_data_df, prediction):
@@ -66,7 +66,7 @@ def compute_confusion_matrix_numbers(actual_data_df, prediction):
         if ((true_poss + false_negs) > 0) and ((true_negs + false_poss) > 0):
             sensitivity = true_poss / (true_poss + false_negs)
             specificity = true_negs / (true_negs + false_poss)
-    return (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_poss, false_negs, true_poss, sensitivity, specificity)
+    return (sensitivity, specificity)
 
 # Step 3: Perform Logistic Regression
 def perform_logistic_regression(dataframe, balance_counter):
@@ -106,9 +106,7 @@ def perform_logistic_regression(dataframe, balance_counter):
 
     cross_validated_accuracy(model, titanic_predictors_df, titanic_response_df)
 
-    (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
-                false_poss, false_negs, true_poss, sensitivity, specificity) \
-            = compute_confusion_matrix_numbers(titanic_response_testing_df, prediction)
+    (sensitivity, specificity) = compute_confusion_matrix_numbers(titanic_response_testing_df, prediction)
     
     if balance_counter == 0:
         balance_status = "Without Balancing"
