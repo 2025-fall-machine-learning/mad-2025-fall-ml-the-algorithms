@@ -46,14 +46,14 @@ def compute_confusion_matrix_numbers(actual_data_df, prediction):
             specificity = true_negs / (true_negs + false_pos)
     return (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_pos, false_negs, true_pos, sensitivity, specificity)
 
-def create_confusion_matrix(actual_data_df, prediction):
-    (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_pos, false_negs, true_pos, sensitivity, specificity) \
-        = compute_confusion_matrix_numbers(actual_data_df, prediction)
-    if (sensitivity > 0) or (specificity > 0):
-        print(f'tp: {true_pos}, fn: {false_negs}, tn: {true_negs}, fp: {false_pos}, sensitivity: {sensitivity}, specificity: {specificity}.')
-    print(command_line_display_as_accuracy_top_confusion_matrix)
-    sns.heatmap(confusion_tuple, annot=True)
-    plt.show()
+# def create_confusion_matrix(actual_data_df, prediction):
+#     (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs, false_pos, false_negs, true_pos, sensitivity, specificity) \
+#         = compute_confusion_matrix_numbers(actual_data_df, prediction)
+#     if (sensitivity > 0) or (specificity > 0):
+#         print(f'tp: {true_pos}, fn: {false_negs}, tn: {true_negs}, fp: {false_pos}, sensitivity: {sensitivity}, specificity: {specificity}.')
+#     print(command_line_display_as_accuracy_top_confusion_matrix)
+#     sns.heatmap(confusion_tuple, annot=True)
+#     plt.show()
 
 UNBALANCED_POS = 0
 BALANCED_POS = 1
@@ -62,19 +62,21 @@ ALL_NEGATIVES = 1
 
 def perform_logistic_regression(titanic_predictors_df, titanic_response_df, balance_counter, summary_stats):
     balanced_str = 'unbalanced'
+    titanic_predictors_copy = titanic_predictors_df.copy()
+    titanic_response_copy = titanic_response_df.copy()
     if balance_counter == 1:
         balanced_str = 'balanced'
         
     for random_state in range(0, 3):
         if balance_counter == 1:
-            random_over_sampler = ios.RandomOverSampler(random_state=1)
+            random_over_sampler = ios.RandomOverSampler(random_state=1) #<-- changed random state here
             titanic_predictors_df, titanic_response_df \
                 = random_over_sampler.fit_resample(titanic_predictors_df, titanic_response_df)
                 
         (titanic_predictors_training_df, titanic_predictors_testing_df,
             titanic_response_training_df, titanic_response_testing_df) = ms.train_test_split(
             titanic_predictors_df, titanic_response_df,
-            test_size = 0.2, random_state=1)
+            test_size = 0.2, random_state=1) #<-- changed random state here
             
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(titanic_predictors_training_df, titanic_response_training_df)
@@ -98,32 +100,39 @@ def perform_logistic_regression(titanic_predictors_df, titanic_response_df, bala
     return summary_stats
      
    
-def predict(titanic_fixed_df):
-    titanic_predictors_df = titanic_fixed_df[['Pclass', 'Age', 'SibSp', 'Parch', 'Fare']]
+def predict(titanic_fixed_df, one_hot_encode):
+    
+    if not one_hot_encode:
+        titanic_predictors_df = titanic_fixed_df[['Age', 'SibSp', 'Fare']] #<--'Pclass' and 'Parch' were removed, they were below .1 when compared to 'Survived'
+    else:
+        titanic_sex_dummies = pd.get_dummies(titanic_fixed_df['Sex'], prefix='Sex')
+        titanic_embarked_dummies = pd.get_dummies(titanic_fixed_df['Embarked'], prefix='Embarked')
+        titanic_predictors_df = pd.concat([titanic_sex_dummies, titanic_embarked_dummies], axis=1)   
+    
     titanic_response_df = titanic_fixed_df['Survived']
     
     summary_stats = [[[],[]],[[],[]]]
     for balance_counter in range(2):
         summary_stats = perform_logistic_regression(titanic_predictors_df, titanic_response_df, 
                                                     balance_counter, summary_stats)
-
-    num_inner_stats = len(summary_stats[balance_counter][ACTUAL_DATA])
-    for balance_counter in range(2):
-        balanced_str = 'unbalanced'
-        if balance_counter == 1:
-            balanced_str = 'balanced'
+        
+    summary_array = np.array(summary_stats, dtype=int)
     
     print("Training Predictors Summary:")
-    print(titanic_response_df)
+    # print(titanic_predictors_df)
+    # print(titanic_response_df)
+    print(summary_array)
     
 def main():
     """Main function"""
     titanic_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/2_classification/Titanic-Dataset.csv")
     # print(titanic_df)
     titanic_fixed_df = titanic_df.dropna() ## <-- Dropped the NaN rows
-    # print(titanic_fixed_df)
-    make_heatmap(titanic_fixed_df)
-    # predict(titanic_fixed_df)
+    # print(titanic_fixed_df, false)
+    # make_heatmap(titanic_fixed_df)
+    # create_confusion_matrix(titanic_fixed_df)
+    predict(titanic_fixed_df, False)
+    # predict(titanic_fixed_df, True)
     
 if __name__ == "__main__":
     main()
