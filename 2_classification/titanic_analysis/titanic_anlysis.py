@@ -76,7 +76,7 @@ def perform_logistic_regression(dataframe, balance_counter):
     # Step 7: Convert categorical variables using one-hot encoding
     titanic_df = pd.get_dummies(titanic_df, columns=['Sex', 'Embarked'], prefix=['Sex', 'Embarked'], drop_first=False)
 
-    independent_vars = titanic_df.columns.drop('Survived').values.tolist()
+    independent_vars = titanic_df.columns.drop(['Survived', 'Sex_male', 'Embarked_S', 'Embarked_Q', 'Pclass', 'Parch']).values.tolist() # Dropping additional variables to due to low correlation
 
     # print(f"DataFrame after encoding categorical variables:\n{titanic_df.head()}")
 
@@ -96,7 +96,9 @@ def perform_logistic_regression(dataframe, balance_counter):
     model = logistic_regression_algorithm.fit(titanic_predictors_training_df, titanic_response_training_df)
     prediction = model.predict(titanic_predictors_testing_df)
 
-    linearity_check(titanic_df)
+    if balance_counter == 0:
+        dropped_titanic_df = titanic_df[independent_vars + ['Survived']]
+        linearity_check(dropped_titanic_df)
 
     # Step 5: Check that all values are zeros or ones
     # print(f"Prediction: {prediction}")
