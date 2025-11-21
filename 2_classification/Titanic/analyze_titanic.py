@@ -9,6 +9,8 @@ from sklearn.metrics import recall_score
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 
@@ -44,7 +46,20 @@ def preprocess_titanic(df):
 
 def compute_correlation_and_vif(X):
     print('\n--- Correlation matrix (predictors) ---')
-    print(X.corr())
+    corr = X.corr()
+    print(corr)
+
+    # Create and save a heatmap visualization for the correlation matrix
+    try:
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(corr, annot=True, fmt='.2f', cmap='coolwarm', vmin=-1, vmax=1)
+        plt.title('Predictor Correlation Heatmap')
+        plt.tight_layout()
+        #plt.savefig('correlation_heatmap.png', dpi=200)
+        #plt.close()
+        plt.show()
+    except Exception as e:
+        print(f"Could not create heatmap: {e}")
 
     if variance_inflation_factor is None:
         print('\nstatsmodels not available — skipping VIF calculation.')
