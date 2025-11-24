@@ -1,0 +1,11 @@
+Sensitivity & Specificity report (split random_state=1)
+
+Before balancing:
+  sensitivity: 0.8571
+  specificity: 0.5000
+  confusion: tn=8 fp=8 fn=3 tp=18
+
+After balancing:
+  sensitivity: 0.7619
+  specificity: 0.8750
+  confusion: tn=14 fp=2 fn=5 tp=16
