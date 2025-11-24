@@ -6,6 +6,7 @@ import sklearn.linear_model as lm
 import sklearn.metrics as metrics
 import imblearn.over_sampling as ios
 import seaborn as sns
+from sklearn.metrics import accuracy_score
 
 N_FOLD_CROSS_VALIDATION = 10
 
@@ -62,29 +63,40 @@ ALL_NEGATIVES = 1
 
 def perform_logistic_regression(titanic_predictors_df, titanic_response_df, balance_counter, summary_stats):
     balanced_str = 'unbalanced'
-    titanic_predictors_copy = titanic_predictors_df.copy()
-    titanic_response_copy = titanic_response_df.copy()
+    # titanic_predictors_copy = titanic_predictors_df.copy()
+    # titanic_response_copy = titanic_response_df.copy()
     if balance_counter == 1:
         balanced_str = 'balanced'
         
+    accuracy_values = []    
+    sensitivity_values = []
+    specificity_values = []
+        
     for random_state in range(0, 3):
         if balance_counter == 1:
-            random_over_sampler = ios.RandomOverSampler(random_state=1) #<-- changed random state here
+            random_over_sampler = ios.RandomOverSampler(random_state=0) #<-- changed random state here
             titanic_predictors_df, titanic_response_df \
                 = random_over_sampler.fit_resample(titanic_predictors_df, titanic_response_df)
                 
         (titanic_predictors_training_df, titanic_predictors_testing_df,
             titanic_response_training_df, titanic_response_testing_df) = ms.train_test_split(
             titanic_predictors_df, titanic_response_df,
-            test_size = 0.2, random_state=1) #<-- changed random state here
+            test_size = 0.2, random_state=0) #<-- changed random state here
             
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(titanic_predictors_training_df, titanic_response_training_df)
         prediction = model.predict(titanic_predictors_testing_df)
 
+        acc = accuracy_score(titanic_response_testing_df, prediction)
+        accuracy_values.append(acc)
+        print(f"{balanced_str} fold {random_state} accuracy: {acc:.4f}")
+        
         (confusion_tuple, command_line_display_as_accuracy_top_confusion_matrix, true_negs,
                 false_pos, false_negs, true_pos, sensitivity, specificity) \
             = compute_confusion_matrix_numbers(titanic_response_testing_df, prediction)
+            
+        sensitivity_values.append(sensitivity)
+        specificity_values.append(specificity)
             
         summary_stats[balance_counter][ACTUAL_DATA].insert(random_state,
                             [true_negs, false_pos, false_negs, true_pos])
@@ -97,6 +109,17 @@ def perform_logistic_regression(titanic_predictors_df, titanic_response_df, bala
             
         summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state,
                             [true_negs, false_pos, false_negs, true_pos])
+    
+    # Compute average accuracy
+    avg_accuracy = sum(accuracy_values) / len(accuracy_values) if accuracy_values else 0
+    print(f"{balanced_str.capitalize()} - Average Accuracy: {avg_accuracy:.4f}")
+        
+    # Compute averages
+    avg_sensitivity = sum(sensitivity_values) / len(sensitivity_values) if sensitivity_values else 0
+    avg_specificity = sum(specificity_values) / len(specificity_values) if specificity_values else 0
+    
+    print(f"\n{balanced_str.capitalize()} - Average Sensitivity: {avg_sensitivity:.4f}, Average Specificity: {avg_specificity:.4f}")
+    
     return summary_stats
      
    
@@ -105,9 +128,27 @@ def predict(titanic_fixed_df, one_hot_encode):
     if not one_hot_encode:
         titanic_predictors_df = titanic_fixed_df[['Age', 'SibSp', 'Fare']] #<--'Pclass' and 'Parch' were removed, they were below .1 when compared to 'Survived'
     else:
-        titanic_sex_dummies = pd.get_dummies(titanic_fixed_df['Sex'], prefix='Sex')
-        titanic_embarked_dummies = pd.get_dummies(titanic_fixed_df['Embarked'], prefix='Embarked')
-        titanic_predictors_df = pd.concat([titanic_sex_dummies, titanic_embarked_dummies], axis=1)   
+        # inside predict(titanic_fixed_df, one_hot_encode):
+        tfcopy_df = titanic_fixed_df.copy()
+        
+        # Drop Age, SibSp, Fare
+        tfcopy_df = tfcopy_df.drop(columns=['Age', 'SibSp', 'Fare'])
+        
+        # Map Sex -> 0/1
+        tfcopy_df['Sex'] = tfcopy_df['Sex'].map({'male': 0, 'female': 1})
+        
+        # Map Embarked -> 0/1/2
+        # tfcopy_df['Embarked'] = tfcopy_df['Embarked'].map({'S': 0, 'C': 1, 'Q': 2}) 
+        
+        # One-hot encode Embarked (keeps columns for S, C, Q)
+        titanic_embarked_dummies = pd.get_dummies(tfcopy_df['Embarked'], prefix='Embarked')
+        
+        # Choose numeric base predictors plus encoded columns
+        titanic_predictors_df = pd.concat([tfcopy_df[['Sex']], titanic_embarked_dummies], axis=1)   
+        
+        # titanic_sex_dummies = pd.get_dummies(titanic_fixed_df['Sex'], prefix='Sex')
+        # titanic_embarked_dummies = pd.get_dummies(titanic_fixed_df['Embarked'], prefix='Embarked')
+        # titanic_predictors_df = pd.concat([titanic_fixed_df[['Age', 'SibSp', 'Fare']], titanic_sex_dummies, titanic_embarked_dummies], axis=1)   
     
     titanic_response_df = titanic_fixed_df['Survived']
     
@@ -119,9 +160,9 @@ def predict(titanic_fixed_df, one_hot_encode):
     summary_array = np.array(summary_stats, dtype=int)
     
     print("Training Predictors Summary:")
-    # print(titanic_predictors_df)
-    # print(titanic_response_df)
     print(summary_array)
+    print(titanic_predictors_df)
+    print(titanic_response_df)
     
 def main():
     """Main function"""
@@ -131,8 +172,8 @@ def main():
     # print(titanic_fixed_df, false)
     # make_heatmap(titanic_fixed_df)
     # create_confusion_matrix(titanic_fixed_df)
-    predict(titanic_fixed_df, False)
-    # predict(titanic_fixed_df, True)
+    # predict(titanic_fixed_df, False)
+    predict(titanic_fixed_df, True)
     
 if __name__ == "__main__":
     main()
