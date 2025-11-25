@@ -63,8 +63,6 @@ ALL_NEGATIVES = 1
 
 def perform_logistic_regression(titanic_predictors_df, titanic_response_df, balance_counter, summary_stats):
     balanced_str = 'unbalanced'
-    # titanic_predictors_copy = titanic_predictors_df.copy()
-    # titanic_response_copy = titanic_response_df.copy()
     if balance_counter == 1:
         balanced_str = 'balanced'
         
@@ -74,19 +72,18 @@ def perform_logistic_regression(titanic_predictors_df, titanic_response_df, bala
         
     for random_state in range(0, 3):
         if balance_counter == 1:
-            random_over_sampler = ios.RandomOverSampler(random_state=0) #<-- changed random state here
+            random_over_sampler = ios.RandomOverSampler(random_state=1) #<-- changed random state here
             titanic_predictors_df, titanic_response_df \
                 = random_over_sampler.fit_resample(titanic_predictors_df, titanic_response_df)
                 
         (titanic_predictors_training_df, titanic_predictors_testing_df,
             titanic_response_training_df, titanic_response_testing_df) = ms.train_test_split(
             titanic_predictors_df, titanic_response_df,
-            test_size = 0.2, random_state=0) #<-- changed random state here
+            test_size = 0.2, random_state=1) #<-- changed random state here
             
         algorithm = lm.LogisticRegression(max_iter=100000)
         model = algorithm.fit(titanic_predictors_training_df, titanic_response_training_df)
         prediction = model.predict(titanic_predictors_testing_df)
-
         acc = accuracy_score(titanic_response_testing_df, prediction)
         accuracy_values.append(acc)
         print(f"{balanced_str} fold {random_state} accuracy: {acc:.4f}")
