@@ -1,0 +1,11 @@
+=== BEFORE balancing (basic model) ===
+Sensitivity: 0.5000
+Specificity: 1.0000
+
+=== AFTER adding Sex+Embarked (before balancing) ===
+Sensitivity: 0.5000
+Specificity: 1.0000
+
+=== AFTER balancing (RandomOverSampler) ===
+Sensitivity: 0.5000
+Specificity: 1.0000
