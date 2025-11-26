@@ -108,7 +108,7 @@ def perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
 
         summary_stats[balance_counter][ALL_NEGATIVES].insert(random_state,
                             [true_negs, false_poss, false_negs, true_poss])
-        print(summary_stats)
+        # print(summary_stats)
         return summary_stats
 
 
@@ -123,6 +123,7 @@ def predict(diabetes_df):
     for balance_counter in range(2):
         summary_stats = perform_logistic_regression(diabetes_predictors_df, diabetes_response_df,
                                                     balance_counter, None)
+
 
 def main():
     diabetes_df = pd.read_csv('pa_diabetes.csv')

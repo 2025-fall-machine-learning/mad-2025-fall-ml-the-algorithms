@@ -1,0 +1,7 @@
+Original features (Pclass, Age, SibSp, Parch, Fare)
+ - before balancing: sensitivity=0.875, specificity=0.231
+ - after balancing:  sensitivity=0.542, specificity=0.462
+
+Extended features (included Sex and Embarked)
+ - before balancing: sensitivity=0.833, specificity=0.385
+ - after balancing:  sensitivity=0.708, specificity=0.615
