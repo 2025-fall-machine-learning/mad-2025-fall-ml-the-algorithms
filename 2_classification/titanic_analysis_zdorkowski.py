@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 
 # Load the dataset
-FILE_PATH = "Titanic-Dataset.csv"
+FILE_PATH = "2_classification\Titanic-Dataset.csv"
 titanic = pd.read_csv(FILE_PATH)
 # Preview structure
 print("Shape:", titanic.shape)

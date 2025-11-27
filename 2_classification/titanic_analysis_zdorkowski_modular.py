@@ -10,7 +10,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.pipeline import Pipeline
 
-FILE_PATH = "Titanic-Dataset.csv"
+FILE_PATH = "2_classification\Titanic-Dataset.csv"
 OUTPUT_FILE = "Titanic_Classification_Results.txt"
 
 
