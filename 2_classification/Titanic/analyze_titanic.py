@@ -140,10 +140,12 @@ def train_and_evaluate(df, save_model=True):
         X2, X2_train, X2_test, y2_train, y2_test, model2, preds2 = None, None, None, None, None, None, None
 
     # Part 10: Oversample (RandomOverSampler) on training set and compare
-    if SMOTE is None:
+    if RandomOverSampler is None:
         print('\nimbalanced-learn not available; skipping oversampling step.')
     else:
-        ros = SMOTE(random_state=1)
+        # Use RandomOverSampler per instruction. SMOTE alternative is shown commented out.
+        ros = RandomOverSampler(random_state=0)
+        # ros = SMOTE(random_state=1)  # SMOTE alternative (commented out)
         # Oversample the training set directly (use X2_train/y2_train if available)
         if extra_cols:
             X_train_for_resample = X2_train
@@ -162,7 +164,7 @@ def train_and_evaluate(df, save_model=True):
         y_test_eval = y2_test if extra_cols else y_test
         preds_bal = model_bal.predict(X_test_eval)
 
-        print('\n--- Logistic Regression Results (after SMOTE) ---')
+        print('\n--- Logistic Regression Results (after RandomOverSampler) ---')
         show_metrics(preds_bal, y_test_eval)
 
         # Cross-validation accuracy before and after balancing
@@ -199,10 +201,10 @@ def train_and_evaluate(df, save_model=True):
 
         # Part 12: Save the two sets of values to a text file
         out_text = (
-            f"Sensitivity_before_SMOTE: {sensitivity_before:.2f}\n"
-            f"Specificity_before_SMOTE: {specificity_before:.2f}\n"
-            f"Sensitivity_after_SMOTE: {sensitivity_after:.2f}\n"
-            f"Specificity_after_SMOTE: {specificity_after:.2f}\n"
+            f"Sensitivity_before_ROS: {sensitivity_before:.2f}\n"
+            f"Specificity_before_ROS: {specificity_before:.2f}\n"
+            f"Sensitivity_after_ROS: {sensitivity_after:.2f}\n"
+            f"Specificity_after_ROS: {specificity_after:.2f}\n"
         )
         with open('sensitivity_specificity.txt', 'w') as f:
             f.write(out_text)
