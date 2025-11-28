@@ -140,7 +140,7 @@ def train_and_evaluate(df, save_model=True):
         X2, X2_train, X2_test, y2_train, y2_test, model2, preds2 = None, None, None, None, None, None, None
 
     # Part 10: Oversample (RandomOverSampler) on training set and compare
-    if RandomOverSampler is None:
+    if RandomOverSampler is None:  # imbalanced-learn random oversampler: 
         print('\nimbalanced-learn not available; skipping oversampling step.')
     else:
         # Use RandomOverSampler per instruction. SMOTE alternative is shown commented out.
