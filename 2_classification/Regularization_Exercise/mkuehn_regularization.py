@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
 import sklearn.model_selection as ms
+import matplotlib as plt
+import seaborn as sns
 import scipy.stats as stats
 import statsmodels.api as sm
 import statsmodels.stats.diagnostic as sms
@@ -70,6 +72,12 @@ def genexpress_predict(gene_express_df):
     predictors_df = gene_express_df.drop(['y'], axis='columns')
     response_df = gene_express_df['y']
     
+    # Correlation Matrix Heatmap
+    correlation_matrix = response_df.corr('y')
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, vmin=-1, vmax=1, center=0, square=True)
+    plt.title('Gene Correlation Heatmap')
+    plt.show()
     
     # Split Data
     predictors_training_df, predictors_testing_df, \
@@ -104,24 +112,24 @@ def genexpress_predict(gene_express_df):
     print(f"Ridge RMSE: {ridge_rmse}.")
     
     # Compute Pearson r and p-value for each predictor vs response
-    results = []
-    for col in predictors_df.columns:
-        x = predictors_df[col].values
-        y = response_df.values
-        # skip constant columns which cause pearsonr to fail
-        if np.std(x) == 0 or np.std(y) == 0:
-            results.append((col, np.nan, np.nan))
-            continue
-        r, p = stats.pearsonr(x, y)
-        results.append((col, r, p))
+    # results = []
+    # for col in predictors_df.columns:
+    #     x = predictors_df[col].values
+    #     y = response_df.values
+    #     # skip constant columns which cause pearsonr to fail
+    #     if np.std(x) == 0 or np.std(y) == 0:
+    #         results.append((col, np.nan, np.nan))
+    #         continue
+    #     r, p = stats.pearsonr(x, y)
+    #     results.append((col, r, p))
         
-    pearson_df = pd.DataFrame(results, columns=['predictor', 'pearson_r', 'p_value'])
-    pearson_df['abs_r'] = pearson_df['pearson_r'].abs()
-    pearson_df = pearson_df.sort_values('abs_r', ascending=False).reset_index(drop=True)
+    # pearson_df = pd.DataFrame(results, columns=['predictor', 'pearson_r', 'p_value'])
+    # pearson_df['abs_r'] = pearson_df['pearson_r'].abs()
+    # pearson_df = pearson_df.sort_values('abs_r', ascending=False).reset_index(drop=True)
     
     # Print top correlate predictors (adjust n as needed)
-    print("\nTop predictors by absolute Pearson R:")
-    print(pearson_df.head(20).to_string(index=False))
+    # print("\nTop predictors by absolute Pearson R:")
+    # print(pearson_df.head(20).to_string(index=False))
     
     # If you want the full correlation matrix (predictors x predictors + response)
     # full_corr = gene_express_df.corr(method='pearson')
@@ -129,7 +137,7 @@ def genexpress_predict(gene_express_df):
     # print(full_corr.head(10).to_string())
     
     # Return the results for downstream use if needed
-    return pearson_df #, full_corr
+    # return pearson_df #, full_corr
     
     
 def main():
