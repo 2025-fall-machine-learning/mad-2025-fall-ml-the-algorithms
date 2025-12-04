@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import sklearn.linear_model as lm
 import sklearn.model_selection as ms
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 import statsmodels.api as sm
@@ -39,16 +39,6 @@ def marketbucket_predict(market_bucket_df):
     ridge_model = ridge_algorithm.fit(predictors_training_df, response_training_df)
     ridge_prediction = ridge_model.predict(predictors_testing_df)
     
-    # Calculate R-Squared
-    # mb_r_squared = mb_algorithm.score(predictors_training_df, response_training_df)
-    # print(f"\nR-Squared: {mb_r_squared}")
-    
-    # lasso_r_squared  = lasso_algorithm.score(predictors_training_df, response_training_df)
-    # print(f"Lasso R-Squared: {lasso_r_squared}")
-    
-    # ridge_r_squared = ridge_algorithm.score(predictors_training_df, response_training_df)
-    # print(f"Ridge R-Sqaured: {ridge_r_squared}")
-    
     print(f"\n{response_df.describe()}")
     
     # MSE and RMSE
@@ -64,6 +54,19 @@ def marketbucket_predict(market_bucket_df):
     ridge_rmse = np.sqrt(ridge_mse)
     print(f"Ridge RMSE: {ridge_rmse}.")    
     
+def correlation_matrix(df):
+    rs = np.random.RandomState(0)
+    df = pd.DataFrame(rs.rand(100, 20), columns=[f'col_{i}' for i in range(20)])
+    correlation_matrix = df.corr(method='pearson')
+    print(correlation_matrix)
+    
+def make_heatmap(corr_df):
+    corr_df = corr_df.select_dtypes(include=[np.number]).corr()
+    fig, ax = plt.subplots(figsize=(10, 8))
+    sns.heatmap(corr_df, annot=False, fmt=".2f", cmap='coolwarm', cbar=True, ax=ax, vmin=-1, vmax=1)
+    plt.title('Pearson Correlation Matrix Heatmap')
+    plt.show()
+    
 def genexpress_predict(gene_express_df):
     print(f"Head: {gene_express_df.head()}")
     print(f"\nTail: {gene_express_df.tail()}")
@@ -72,18 +75,23 @@ def genexpress_predict(gene_express_df):
     predictors_df = gene_express_df.drop(['y'], axis='columns')
     response_df = gene_express_df['y']
     
+    # Calculate Pearson Correlation Matrix
+    # correlation_matrix = gene_express_df.corr(method='pearson')
+    # print(correlation_matrix.sort_values(ascending=False))
+    
     # Correlation Matrix Heatmap
-    correlation_matrix = response_df.corr('y')
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, vmin=-1, vmax=1, center=0, square=True)
-    plt.title('Gene Correlation Heatmap')
-    plt.show()
+    # correlation_matrix = response_df.corr('y')
+    # plt.figure(figsize=(10, 8))
+    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, vmin=-1, vmax=1, center=0, square=True)
+    # plt.title('Gene Correlation Heatmap')
+    # plt.show()
     
     # Split Data
     predictors_training_df, predictors_testing_df, \
         response_training_df, response_testing_df \
             = ms.train_test_split(predictors_df, response_df,
                 test_size=0.2, random_state=0)
+            
             
     # Train and Predict
     ge_algorithm = lm.LinearRegression()
@@ -111,35 +119,6 @@ def genexpress_predict(gene_express_df):
     ridge_rmse = np.sqrt(ridge_mse)
     print(f"Ridge RMSE: {ridge_rmse}.")
     
-    # Compute Pearson r and p-value for each predictor vs response
-    # results = []
-    # for col in predictors_df.columns:
-    #     x = predictors_df[col].values
-    #     y = response_df.values
-    #     # skip constant columns which cause pearsonr to fail
-    #     if np.std(x) == 0 or np.std(y) == 0:
-    #         results.append((col, np.nan, np.nan))
-    #         continue
-    #     r, p = stats.pearsonr(x, y)
-    #     results.append((col, r, p))
-        
-    # pearson_df = pd.DataFrame(results, columns=['predictor', 'pearson_r', 'p_value'])
-    # pearson_df['abs_r'] = pearson_df['pearson_r'].abs()
-    # pearson_df = pearson_df.sort_values('abs_r', ascending=False).reset_index(drop=True)
-    
-    # Print top correlate predictors (adjust n as needed)
-    # print("\nTop predictors by absolute Pearson R:")
-    # print(pearson_df.head(20).to_string(index=False))
-    
-    # If you want the full correlation matrix (predictors x predictors + response)
-    # full_corr = gene_express_df.corr(method='pearson')
-    # print("\nPearson Correlation Matrix (First 10 Rows):")
-    # print(full_corr.head(10).to_string())
-    
-    # Return the results for downstream use if needed
-    # return pearson_df #, full_corr
-    
-    
 def main():
     """Main Function"""
     market_bucket_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/2_classification/Regularization_Exercise/marketing_buckets.csv")
@@ -147,6 +126,8 @@ def main():
     # marketbucket_predict(market_bucket_df)
     gene_express_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/2_classification/Regularization_Exercise/gene_expressions.csv")
     # print(gene_express_df)
+    correlation_matrix(gene_express_df)
+    # make_heatmap(gene_express_df)
     genexpress_predict(gene_express_df)
     
 if __name__ == "__main__":
