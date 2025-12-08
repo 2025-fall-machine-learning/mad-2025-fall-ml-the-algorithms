@@ -55,8 +55,6 @@ def marketbucket_predict(market_bucket_df):
     print(f"Ridge RMSE: {ridge_rmse}.")    
     
 def correlation_matrix(df):
-    rs = np.random.RandomState(0)
-    df = pd.DataFrame(rs.rand(100, 20), columns=[f'col_{i}' for i in range(20)])
     correlation_matrix = df.corr(method='pearson')
     print(correlation_matrix)
     
@@ -74,17 +72,6 @@ def genexpress_predict(gene_express_df):
     # Set Predictors and Response
     predictors_df = gene_express_df.drop(['y'], axis='columns')
     response_df = gene_express_df['y']
-    
-    # Calculate Pearson Correlation Matrix
-    # correlation_matrix = gene_express_df.corr(method='pearson')
-    # print(correlation_matrix.sort_values(ascending=False))
-    
-    # Correlation Matrix Heatmap
-    # correlation_matrix = response_df.corr('y')
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, vmin=-1, vmax=1, center=0, square=True)
-    # plt.title('Gene Correlation Heatmap')
-    # plt.show()
     
     # Split Data
     predictors_training_df, predictors_testing_df, \
@@ -126,7 +113,7 @@ def main():
     # marketbucket_predict(market_bucket_df)
     gene_express_df = pd.read_csv("E:/Madison College/Machine Learning/mad-2025-fall-ml-the-algorithms/2_classification/Regularization_Exercise/gene_expressions.csv")
     # print(gene_express_df)
-    correlation_matrix(gene_express_df)
+    # correlation_matrix(gene_express_df)
     # make_heatmap(gene_express_df)
     genexpress_predict(gene_express_df)
     
