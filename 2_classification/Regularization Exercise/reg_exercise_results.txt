@@ -1,0 +1,23 @@
+Part 1 Submission
+
+Linear Regression RMSE: 62357113.45867675
+Lasso Regression RMSE: 1236872.8642183614
+Ridge Regression RMSE: 62357113.45868573
+
+Linear Regression RMSE: 67367818.8213232
+Lasso Regression RMSE: 2642165.9810472163
+Ridge Regression RMSE: 67367818.82132791
+
+Linear Regression RMSE: 79023076.29568636
+Lasso Regression RMSE: 1128065.3789069855
+Ridge Regression RMSE: 79023076.29568593
+
+Linear Regression RMSE: 67192861.74436693
+Lasso Regression RMSE: 5471089.374558469
+Ridge Regression RMSE: 67192861.74438214
+
+Part 2 Submission
+
+Linear Regression RMSE: 1184.3484558112964
+Lasso Regression RMSE: 461.77611144203087
+Ridge Regression RMSE: 1184.3481831115823
