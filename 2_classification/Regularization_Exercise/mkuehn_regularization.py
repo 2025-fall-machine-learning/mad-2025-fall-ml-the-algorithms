@@ -11,6 +11,8 @@ import statsmodels.api as sm
 import statsmodels.stats.diagnostic as sms
 import sklearn.metrics as metrics
 
+# Part 1
+
 def marketbucket_predict(market_bucket_df):
     print(f"Head: {market_bucket_df.head()}")
     print(f"\nDescription: {market_bucket_df.describe()}")
@@ -24,7 +26,7 @@ def marketbucket_predict(market_bucket_df):
     predictors_training_df, predictors_testing_df, \
         response_training_df, response_testing_df \
             = ms.train_test_split(predictors_df, response_df, 
-                test_size=0.3)
+                test_size=0.3) #, random_state=1)   
     
     # Train and Predict
     mb_algorithm = lm.LinearRegression()
@@ -53,6 +55,8 @@ def marketbucket_predict(market_bucket_df):
     ridge_mse = metrics.mean_squared_error(response_testing_df, ridge_prediction)
     ridge_rmse = np.sqrt(ridge_mse)
     print(f"Ridge RMSE: {ridge_rmse}.")    
+    
+# Part 2
     
 def correlation_matrix(df):
     correlation_matrix = df.corr(method='pearson')
