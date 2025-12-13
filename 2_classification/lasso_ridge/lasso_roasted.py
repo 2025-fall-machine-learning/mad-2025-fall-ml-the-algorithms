@@ -1,4 +1,5 @@
 
+
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -6,11 +7,29 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, LassoCV, RidgeCV
 from sklearn.metrics import mean_squared_error
+import sys
+
+class Tee:
+    def __init__(self, *files):
+        self.files = files
+    def write(self, obj):
+        for f in self.files:
+            f.write(obj)
+            f.flush()
+    def flush(self):
+        for f in self.files:
+            f.flush()
 
 def rmse(y_true, y_pred):
     return np.sqrt(mean_squared_error(y_true, y_pred))
 
 def main():
+
+    # --- Output to both console and file ---
+    output_file = open("output.txt", "w", encoding="utf-8")
+    original_stdout = sys.stdout
+    sys.stdout = Tee(sys.stdout, output_file)
+
     # --- Load data ---
     df = pd.read_csv("marketing_buckets.csv")
     print("\n=== Shape (rows, cols) ===")
@@ -69,10 +88,15 @@ def main():
     ridge2 = Pipeline([("scaler", StandardScaler()), ("ridge", RidgeCV(cv=5))]).fit(X_train2, y_train2)
     lasso2 = Pipeline([("scaler", StandardScaler()), ("lasso", LassoCV(cv=5, max_iter=10000))]).fit(X_train2, y_train2)
 
-    print("\n=== Rerun (no random_state) RMSEs ===")
+
+    print(f"\n=== Rerun (no random_state) RMSEs ===")
     print(f"Linear: {rmse(y_test2, lin2.predict(X_test2)):,.2f} | "
           f"RidgeCV: {rmse(y_test2, ridge2.predict(X_test2)):,.2f} | "
           f"LassoCV: {rmse(y_test2, lasso2.predict(X_test2)):,.2f}")
+
+        # --- Restore stdout and close file ---
+    sys.stdout = original_stdout
+    output_file.close()
 
 if __name__ == "__main__":
     main()

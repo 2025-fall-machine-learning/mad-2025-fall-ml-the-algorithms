@@ -1,0 +1,32 @@
+
+=== Shape (rows, cols) ===
+(15, 112)
+
+=== First few predictor columns ===
+['ZXT', 'JAC', 'IFY', 'LFE', 'RUM', 'GKL', 'VJI', 'RKH', 'SQW', 'FLW'] ... (total predictors: 111 )
+
+=== Response 'LVT'.describe() ===
+count    1.500000e+01
+mean     1.519076e+07
+std      9.086101e+07
+min     -1.106243e+08
+25%     -5.478429e+07
+50%      1.712347e+07
+75%      9.087884e+07
+max      1.938883e+08
+Name: LVT, dtype: float64
+
+Train shape: (10, 111), Test shape: (5, 111)
+
+Linear RMSE: 77,512,195.48
+RidgeCV (cv=5) RMSE: 81,487,852.14
+LassoCV (cv=5) RMSE: 1,358,312.62
+
+Lasso alpha (CV): 88169.72652174615
+Ridge alpha (CV): 10.0
+
+=== RMSE vs. LVT summary ===
+Mean: 15,190,761.74 | Std: 90,861,005.20 | IQR (~25%..75%): -54,784,287.25 .. 90,878,835.97 | Min: -110,624,281.30 | Max: 193,888,335.28
+
+=== Rerun (no random_state) RMSEs ===
+Linear: 63,383,835.04 | RidgeCV: 77,394,901.03 | LassoCV: 1,929,806.62
