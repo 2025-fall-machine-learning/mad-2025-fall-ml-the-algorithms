@@ -30,7 +30,9 @@ def main():
     original_stdout = sys.stdout
     sys.stdout = Tee(sys.stdout, output_file)
 
-    # --- Load data ---
+
+    # === PART 1: marketing_buckets.csv ===
+    print("\n================ PART 1: marketing_buckets.csv ================".upper())
     df = pd.read_csv("marketing_buckets.csv")
     print("\n=== Shape (rows, cols) ===")
     print(df.shape)
@@ -88,13 +90,68 @@ def main():
     ridge2 = Pipeline([("scaler", StandardScaler()), ("ridge", RidgeCV(cv=5))]).fit(X_train2, y_train2)
     lasso2 = Pipeline([("scaler", StandardScaler()), ("lasso", LassoCV(cv=5, max_iter=10000))]).fit(X_train2, y_train2)
 
-
     print(f"\n=== Rerun (no random_state) RMSEs ===")
     print(f"Linear: {rmse(y_test2, lin2.predict(X_test2)):,.2f} | "
           f"RidgeCV: {rmse(y_test2, ridge2.predict(X_test2)):,.2f} | "
           f"LassoCV: {rmse(y_test2, lasso2.predict(X_test2)):,.2f}")
 
-        # --- Restore stdout and close file ---
+
+
+    # === PART 2: gene_expressions.csv ===
+    print("\n================ PART 2: gene_expressions.csv ================".upper())
+    df2 = pd.read_csv("gene_expressions.csv")
+    print("\n=== First few rows ===")
+    print(df2.head())
+    print("\n=== Last few rows ===")
+    print(df2.tail())
+
+    # Last column is response 'y', rest are predictors
+    y2 = df2.iloc[:, -1]
+    X2 = df2.iloc[:, :-1]
+
+    print("\n=== Pearson's R values (predictors vs y) ===")
+    pearson_r = X2.apply(lambda col: col.corr(y2))
+    print(pearson_r.describe())
+    print("(Full Pearson's R array omitted for brevity)")
+
+    # --- Split: 20% test, random_state=0 ---
+    X2_train, X2_test, y2_train, y2_test = train_test_split(
+        X2, y2, test_size=0.2, random_state=0
+    )
+    print(f"\nTrain shape: {X2_train.shape}, Test shape: {X2_test.shape}")
+
+    # --- Linear Regression ---
+    lin2 = LinearRegression().fit(X2_train, y2_train)
+    lin2_pred = lin2.predict(X2_test)
+    lin2_rmse = rmse(y2_test, lin2_pred)
+    print(f"\nLinear RMSE: {lin2_rmse:,.2f}")
+
+    # --- RidgeCV (cv=5) with scaling ---
+    ridge2 = Pipeline([("scaler", StandardScaler()), ("ridge", RidgeCV(cv=5))]).fit(X2_train, y2_train)
+    ridge2_pred = ridge2.predict(X2_test)
+    ridge2_rmse = rmse(y2_test, ridge2_pred)
+    print(f"RidgeCV (cv=5) RMSE: {ridge2_rmse:,.2f}")
+
+    # --- LassoCV (cv=5) with scaling ---
+    lasso2 = Pipeline([("scaler", StandardScaler()), ("lasso", LassoCV(cv=5, max_iter=10000))]).fit(X2_train, y2_train)
+    lasso2_pred = lasso2.predict(X2_test)
+    lasso2_rmse = rmse(y2_test, lasso2_pred)
+    print(f"LassoCV (cv=5) RMSE: {lasso2_rmse:,.2f}")
+
+    # --- Hyperparameters chosen by CV ---
+    print("\nLasso alpha (CV):", lasso2.named_steps["lasso"].alpha_)
+    try:
+        print("Ridge alpha (CV):", ridge2.named_steps["ridge"].alpha_)
+    except AttributeError:
+        pass
+
+    # --- Compare RMSE to y.describe() figures ---
+    print("\n=== RMSE vs. y summary ===")
+    print(f"Mean: {y2.mean():,.2f} | Std: {y2.std():,.2f} | "
+          f"IQR (~25%..75%): {y2.quantile(0.25):,.2f} .. {y2.quantile(0.75):,.2f} | "
+          f"Min: {y2.min():,.2f} | Max: {y2.max():,.2f}")
+
+    # --- Restore stdout and close file ---
     sys.stdout = original_stdout
     output_file.close()
 
