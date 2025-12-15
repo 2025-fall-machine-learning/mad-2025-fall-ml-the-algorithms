@@ -52,6 +52,7 @@ def regression_regularization(regularization_df, create_testing_set):
         
         try:
             with open('rmse_results.txt', 'w') as f:
+                f.write("Part 1 Results:\n")
                 f.write(f"RMSE_test_linear: {testing_rsme}\n")
                 f.write(f"RMSE_test_lasso: {lasso_testing_rsme}\n")
                 f.write(f"RMSE_test_ridge: {ridge_testing_rsme}\n")
